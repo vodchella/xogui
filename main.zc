@@ -111,12 +111,17 @@ fn main()
     let clicked_cell: char[3]
     while (!ray::WindowShouldClose()) {
         if board_handle_click_on_cell(clicked_cell) {
-            printf("Clicked %s\n", clicked_cell)
             let request = "PLAY X {clicked_cell}\n"
             if engine_get_response(request, pid, child_in, child_out, response, sizeof(response)) {
-                printf("%s", response)
+                if (strncmp(response, "= PLAY", 6) == 0) {
+                    println "played {clicked_cell}"
+                } else if (strncmp(response, "? ", 2) == 0) {
+                    printf("error at %s: %s", clicked_cell, response + 2)
+                } else {
+                    printf("%s", response)
+                }
             } else {
-                printf("The engine has terminated\n")
+                fprintf(stderr, "The engine has terminated\n")
                 break
             }
         }
