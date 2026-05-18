@@ -1,46 +1,32 @@
 //> link: -L${RAYLIB}/lib -lraylib
 //> include: ${RAYLIB}/include
 
-import "unistd.h" as u
-import "raylib.h" as ray
+import "unistd.h"   as u
+import "raylib.h"   as ray
 import "engine.zc"
 
 
-def WINDOW_WIDTH  = 1000
-def WINDOW_HEIGHT = 1000
-def BOARD_SIZE    = 10
-def CELL_SIZE     = 70
-def FONT_SIZE     = CELL_SIZE - 20 - (10 * 2)
-def H_GRID_MARGIN = (WINDOW_WIDTH  - (BOARD_SIZE * CELL_SIZE)) / 2
-def V_GRID_MARGIN = (WINDOW_HEIGHT - (BOARD_SIZE * CELL_SIZE)) / 2
-def BG_COLOR      = ray::Color { r: 18, g: 18, b:18, a:255 }
-def FG_COLOR      = ray::LIGHTGRAY
+def WINDOW_WIDTH   = 1000
+def WINDOW_HEIGHT  = 1000
+def BOARD_SIZE     = 10
+def CELL_SIZE      = 70
+def FONT_SIZE      = CELL_SIZE - 20 - (10 * 2)
+def H_GRID_MARGIN  = (WINDOW_WIDTH  - (BOARD_SIZE * CELL_SIZE)) / 2
+def V_GRID_MARGIN  = (WINDOW_HEIGHT - (BOARD_SIZE * CELL_SIZE)) / 2
+def BG_COLOR       = ray::Color { r: 18, g: 18, b:18, a:255 }
+def FG_COLOR       = ray::LIGHTGRAY
 
 
-fn board_draw_symbol(sym:   char*,
-               x:     int,
-               y:     int,
-               color: ray::Color)
+fn board_draw_symbol(sym:    char*,
+                     x:      int,
+                     y:      int,
+                     color:  ray::Color)
 {
-    let font = ray::GetFontDefault()
-    let text_size = ray::MeasureTextEx(
-        font,
-        sym,
-        FONT_SIZE,
-        1
-    )
-
-    let text_x = x + (CELL_SIZE - text_size.x) / 2
-    let text_y = y + (CELL_SIZE - text_size.y) / 2
-
-    ray::DrawTextEx(
-        font,
-        sym,
-        ray::Vector2 { x: text_x, y: text_y },
-        FONT_SIZE,
-        1,
-        color
-    )
+    let font      = ray::GetFontDefault()
+    let text_size = ray::MeasureTextEx(font, sym, FONT_SIZE, 1)
+    let text_x    = x + (CELL_SIZE - text_size.x) / 2
+    let text_y    = y + (CELL_SIZE - text_size.y) / 2
+    ray::DrawTextEx(font, sym, ray::Vector2 { x: text_x, y: text_y }, FONT_SIZE, 1, color)
 }
 
 fn board_draw_grid()
@@ -118,7 +104,7 @@ fn main()
                 } else if (strncmp(response, "? ", 2) == 0) {
                     printf("error at %s: %s", clicked_cell, response + 2)
                 } else {
-                    printf("%s", response)
+                    println "{response}"
                 }
             } else {
                 fprintf(stderr, "The engine has terminated\n")
@@ -138,3 +124,4 @@ fn main()
 
     return 0;
 }
+

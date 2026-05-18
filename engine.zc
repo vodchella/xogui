@@ -17,12 +17,12 @@ fn process_is_dead(pid: u::pid_t) -> bool
     return false
 }
 
-fn engine_get_response(request:      char*,
-                       pid:          u::pid_t,
-                       engine_in:    FILE*,
-                       engine_out:   FILE*,
-                       response:     char*,
-                       response_len: int) -> bool
+fn engine_get_response(request:       char*,
+                       pid:           u::pid_t,
+                       engine_in:     FILE*,
+                       engine_out:    FILE*,
+                       response:      char*,
+                       response_len:  int) -> bool
 {
     if process_is_dead(pid) {
         return false
@@ -50,11 +50,11 @@ fn engine_get_response(request:      char*,
 
 fn engine_start() -> (u::pid_t, FILE*, FILE*)
 {
-    let pid:       u::pid_t
-    let child_in:  FILE*
-    let child_out: FILE*
-    let to_cat:    int[2]
-    let from_cat:  int[2]
+    let pid:        u::pid_t
+    let child_in:   FILE*
+    let child_out:  FILE*
+    let to_cat:     int[2]
+    let from_cat:   int[2]
 
     pipe(to_cat)
     pipe(from_cat)
