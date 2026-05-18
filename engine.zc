@@ -1,0 +1,84 @@
+import "unistd.h" as u
+import "sys/wait.h"
+
+fn process_is_dead(pid: u::pid_t) -> bool
+{
+    let status: int
+    for i in 0 .. 10 {
+        let result: u::pid_t = waitpid(pid, &status, WNOHANG)
+        if result == pid {
+            return true
+        }
+        if result == (u::pid_t) (-1) {
+            return true
+        }
+        usleep(1000)  // 1 ms
+    }
+    return false
+}
+
+fn engine_get_response(request:      char*,
+                       pid:          u::pid_t,
+                       engine_in:    FILE*,
+                       engine_out:   FILE*,
+                       response:     char*,
+                       response_len: int) -> bool
+{
+    if process_is_dead(pid) {
+        return false
+    }
+
+    let line: char[1024]
+    response[0] = '\0'
+    fprintf(engine_in, "%s", request)
+    fflush(engine_in)
+
+    if process_is_dead(pid) {
+        return false
+    }
+
+    while (fgets(line, sizeof(line), engine_out)) {
+        // GTP response ends with empty line
+        if (strcmp(line, "\n") == 0) {
+            return !process_is_dead(pid)
+        }
+        strncat(response, line, response_len - strlen(response) - 1)
+    }
+
+    return false
+}
+
+fn engine_start(pid:       u::pid_t*,
+                child_in:  FILE**,
+                child_out: FILE**)
+{
+    let to_cat:   int[2]
+    let from_cat: int[2]
+
+    pipe(to_cat)
+    pipe(from_cat)
+
+    *pid = fork()
+    if *pid == (u::pid_t) 0 {  // Child
+        dup2(to_cat[0], STDIN_FILENO)
+        dup2(from_cat[1], STDOUT_FILENO)
+
+        close(to_cat[0])
+        close(to_cat[1])
+        close(from_cat[0])
+        close(from_cat[1])
+
+        execlp("./xoml", "xoml", "-GTP", NULL)
+
+        // Unreachable if no errors
+        perror("execlp")
+        exit(1)
+    }
+
+    close(to_cat[0])
+    close(from_cat[1])
+
+    *child_in  = fdopen(to_cat[1], "w")
+    *child_out = fdopen(from_cat[0], "r")
+}
+
