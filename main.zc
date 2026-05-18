@@ -1,31 +1,53 @@
+//> link: -L${RAYLIB}/lib -lraylib
+//> include: ${RAYLIB}/include
+
 import "unistd.h" as u
-import "engine.zc"
+import "raylib.h" as ray
+// import "engine.zc"
+
+
+def BG_COLOR = ray::Color { r: 18, g: 18, b:18, a:255 }
+def WINDOW_WIDTH = 800
+def WINDOW_HEIGHT = 600
+
 
 fn main()
 {
-    let line: char[1024]
-    let response: char[1024]
-    let (pid, child_in, child_out) = engine_start()
+    ray::InitWindow(800, 600, "XoGui v0.0.1")
+    ray::SetTargetFPS(60)
 
-    while (1) {
-        printf("> ")
-        fflush(stdout)
-
-        if (!fgets(line, sizeof(line), stdin)) {
-            break
-        }
-
-        if engine_get_response(line, pid, child_in, child_out, response, sizeof(response)) {
-            printf("%s", response)
-        } else {
-            printf("The engine has terminated")
-            break
-        }
+    while (!ray::WindowShouldClose()) {
+        ray::BeginDrawing()
+        ray::ClearBackground(BG_COLOR)
+        ray::DrawText("Hello from Zen C", 190, WINDOW_HEIGHT / 2, 40, ray::LIGHTGRAY)
+        ray::EndDrawing()
     }
 
-    fclose(child_in)
-    fclose(child_out)
+    ray::CloseWindow()
 
-    wait(NULL)
+    // let line: char[1024]
+    // let response: char[1024]
+    // let (pid, child_in, child_out) = engine_start()
+    //
+    // while (1) {
+    //     printf("> ")
+    //     fflush(stdout)
+    //
+    //     if (!fgets(line, sizeof(line), stdin)) {
+    //         break
+    //     }
+    //
+    //     if engine_get_response(line, pid, child_in, child_out, response, sizeof(response)) {
+    //         printf("%s", response)
+    //     } else {
+    //         printf("The engine has terminated")
+    //         break
+    //     }
+    // }
+    //
+    // fclose(child_in)
+    // fclose(child_out)
+    // wait(NULL)
+
     return 0;
 }
