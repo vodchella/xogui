@@ -3,7 +3,7 @@
 
 import "unistd.h" as u
 import "raylib.h" as ray
-// import "engine.zc"
+import "engine.zc"
 
 
 def WINDOW_WIDTH  = 1000
@@ -17,7 +17,7 @@ def BG_COLOR      = ray::Color { r: 18, g: 18, b:18, a:255 }
 def FG_COLOR      = ray::LIGHTGRAY
 
 
-fn draw_symbol(sym:   char*,
+fn board_draw_symbol(sym:   char*,
                x:     int,
                y:     int,
                color: ray::Color)
@@ -43,7 +43,7 @@ fn draw_symbol(sym:   char*,
     )
 }
 
-fn draw_grid()
+fn board_draw_grid()
 {
     let text: char[2]
     text[1] = '\0'
@@ -54,8 +54,8 @@ fn draw_grid()
         ray::DrawLine(x, ys, x, ye, FG_COLOR)
         if (c < BOARD_SIZE) {
             text[0] = 'A' + c
-            draw_symbol(text, x, ys - CELL_SIZE, FG_COLOR)
-            draw_symbol(text, x, ye, FG_COLOR)
+            board_draw_symbol(text, x, ys - CELL_SIZE, FG_COLOR)
+            board_draw_symbol(text, x, ye, FG_COLOR)
         }
     }
     for r in 0 ..= BOARD_SIZE {
@@ -65,13 +65,13 @@ fn draw_grid()
         ray::DrawLine(xs, y, xe, y, FG_COLOR)
         if (r < BOARD_SIZE) {
             text[0] = '9' - r
-            draw_symbol(text, xs - CELL_SIZE, y, FG_COLOR)
-            draw_symbol(text, xe, y, FG_COLOR)
+            board_draw_symbol(text, xs - CELL_SIZE, y, FG_COLOR)
+            board_draw_symbol(text, xe, y, FG_COLOR)
         }
     }
 }
 
-fn handle_click_on_cell(cell: char*) -> bool
+fn board_handle_click_on_cell(cell: char*) -> bool
 {
     if (!ray::IsMouseButtonReleased(ray::MOUSE_BUTTON_LEFT)) {
         return false
@@ -102,45 +102,34 @@ fn handle_click_on_cell(cell: char*) -> bool
 
 fn main()
 {
+    let response: char[1024]
+    let (pid, child_in, child_out) = engine_start()
+
     ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui v0.0.1")
     ray::SetTargetFPS(60)
 
     let clicked_cell: char[3]
     while (!ray::WindowShouldClose()) {
-        if handle_click_on_cell(clicked_cell) {
-            printf("%s\n", clicked_cell)
+        if board_handle_click_on_cell(clicked_cell) {
+            printf("Clicked %s\n", clicked_cell)
+            let request = "PLAY X {clicked_cell}\n"
+            if engine_get_response(request, pid, child_in, child_out, response, sizeof(response)) {
+                printf("%s", response)
+            } else {
+                printf("The engine has terminated\n")
+                break
+            }
         }
         ray::BeginDrawing()
         ray::ClearBackground(BG_COLOR)
-        draw_grid()
+        board_draw_grid()
         ray::EndDrawing()
     }
 
     ray::CloseWindow()
-
-    // let line: char[1024]
-    // let response: char[1024]
-    // let (pid, child_in, child_out) = engine_start()
-    //
-    // while (1) {
-    //     printf("> ")
-    //     fflush(stdout)
-    //
-    //     if (!fgets(line, sizeof(line), stdin)) {
-    //         break
-    //     }
-    //
-    //     if engine_get_response(line, pid, child_in, child_out, response, sizeof(response)) {
-    //         printf("%s", response)
-    //     } else {
-    //         printf("The engine has terminated")
-    //         break
-    //     }
-    // }
-    //
-    // fclose(child_in)
-    // fclose(child_out)
-    // wait(NULL)
+    fclose(child_in)
+    fclose(child_out)
+    wait(NULL)
 
     return 0;
 }
