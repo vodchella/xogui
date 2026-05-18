@@ -7,19 +7,20 @@ import "raylib.h" as ray
 
 
 def BG_COLOR = ray::Color { r: 18, g: 18, b:18, a:255 }
+def FG_COLOR = ray::LIGHTGRAY
 def WINDOW_WIDTH = 800
 def WINDOW_HEIGHT = 600
 
 
 fn main()
 {
-    ray::InitWindow(800, 600, "XoGui v0.0.1")
+    ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui v0.0.1")
     ray::SetTargetFPS(60)
 
     while (!ray::WindowShouldClose()) {
         ray::BeginDrawing()
         ray::ClearBackground(BG_COLOR)
-        ray::DrawText("Hello from Zen C", 190, WINDOW_HEIGHT / 2, 40, ray::LIGHTGRAY)
+        ray::DrawText("Hello from Zen C", 190, WINDOW_HEIGHT / 2, 40, FG_COLOR)
         ray::EndDrawing()
     }
 
