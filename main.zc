@@ -1,24 +1,51 @@
 import "unistd.h" as u
 import "sys/wait.h"
 
+fn is_process_dead(pid: pid_t) -> bool
+{
+    let status: int
+    for (let i = 0; i < 10; i++) {
+        let result: pid_t = waitpid(pid, &status, WNOHANG)
+        if result == pid {
+            return true
+        }
+        if result == (pid_t) (-1) {
+            return true
+        }
+        usleep(1000)  // 1 ms
+    }
+    return false
+}
+
 fn get_engine_response(request:      char*,
+                       pid:          pid_t,
                        engine_in:    FILE*,
                        engine_out:   FILE*,
                        response:     char*,
                        response_len: int) -> bool
 {
+    if is_process_dead(pid) {
+        return false
+    }
+
     let line: char[1024]
     response[0] = '\0'
     fprintf(engine_in, "%s", request)
     fflush(engine_in)
+
+    if is_process_dead(pid) {
+        return false
+    }
+
     while (fgets(line, sizeof(line), engine_out)) {
         // GTP response ends with empty line
         if (strcmp(line, "\n") == 0) {
-            break
+            return !is_process_dead(pid)
         }
         strncat(response, line, response_len - strlen(response) - 1)
     }
-    return true
+
+    return false
 }
 
 fn main()
@@ -62,8 +89,11 @@ fn main()
             break
         }
 
-        if get_engine_response(line, child_in, child_out, response, sizeof(response)) {
+        if get_engine_response(line, pid, child_in, child_out, response, sizeof(response)) {
             printf("%s", response)
+        } else {
+            printf("The engine has terminated")
+            break
         }
     }
 
