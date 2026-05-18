@@ -1,0 +1,75 @@
+import "unistd.h" as u
+import "sys/wait.h"
+
+fn get_engine_response(request:      char*,
+                       engine_in:    FILE*,
+                       engine_out:   FILE*,
+                       response:     char*,
+                       response_len: int) -> bool
+{
+    let line: char[1024]
+    response[0] = '\0'
+    fprintf(engine_in, "%s", request)
+    fflush(engine_in)
+    while (fgets(line, sizeof(line), engine_out)) {
+        // GTP response ends with empty line
+        if (strcmp(line, "\n") == 0) {
+            break
+        }
+        strncat(response, line, response_len - strlen(response) - 1)
+    }
+    return true
+}
+
+fn main()
+{
+    let to_cat:   int[2]
+    let from_cat: int[2]
+
+    pipe(to_cat)
+    pipe(from_cat)
+
+    let pid: u::pid_t = fork()
+    if pid == (pid_t) 0 {  // Child
+        dup2(to_cat[0], STDIN_FILENO)
+        dup2(from_cat[1], STDOUT_FILENO)
+
+        close(to_cat[0])
+        close(to_cat[1])
+        close(from_cat[0])
+        close(from_cat[1])
+
+        execlp("./xoml", "xoml", "-GTP", NULL)
+
+        // Unreachable if no errors
+        perror("execlp")
+        exit(1)
+    }
+
+    close(to_cat[0])
+    close(from_cat[1])
+
+    let child_in: FILE*  = fdopen(to_cat[1], "w")
+    let child_out: FILE* = fdopen(from_cat[0], "r")
+    let line: char[1024]
+    let response: char[1024]
+
+    while (1) {
+        printf("> ")
+        fflush(stdout)
+
+        if (!fgets(line, sizeof(line), stdin)) {
+            break
+        }
+
+        if get_engine_response(line, child_in, child_out, response, sizeof(response)) {
+            printf("%s", response)
+        }
+    }
+
+    fclose(child_in)
+    fclose(child_out)
+
+    wait(NULL)
+    return 0;
+}
