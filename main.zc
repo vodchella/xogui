@@ -71,13 +71,45 @@ fn draw_grid()
     }
 }
 
+fn handle_click_on_cell(cell: char*) -> bool
+{
+    if (!ray::IsMouseButtonReleased(ray::MOUSE_BUTTON_LEFT)) {
+        return false
+    }
+
+    let mouse = ray::GetMousePosition()
+
+    let grid_x0 = H_GRID_MARGIN
+    let grid_y0 = V_GRID_MARGIN
+    let grid_x1 = H_GRID_MARGIN + BOARD_SIZE * CELL_SIZE
+    let grid_y1 = V_GRID_MARGIN + BOARD_SIZE * CELL_SIZE
+
+    if (mouse.x < grid_x0 || mouse.x >= grid_x1 ||
+        mouse.y < grid_y0 || mouse.y >= grid_y1) {
+        return false
+    }
+
+    let col = ((int) mouse.x - grid_x0) / CELL_SIZE
+    let row = ((int) mouse.y - grid_y0) / CELL_SIZE
+
+    cell[0] = 'A' + col
+    cell[1] = '9' - row
+    cell[2] = '\0'
+
+    return true
+}
+
 
 fn main()
 {
     ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui v0.0.1")
     ray::SetTargetFPS(60)
 
+    let clicked_cell: char[3]
     while (!ray::WindowShouldClose()) {
+        if handle_click_on_cell(clicked_cell) {
+            printf("%s\n", clicked_cell)
+        }
         ray::BeginDrawing()
         ray::ClearBackground(BG_COLOR)
         draw_grid()
