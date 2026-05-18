@@ -3,13 +3,9 @@ import "engine.zc"
 
 fn main()
 {
-    let pid: u::pid_t
-    let child_in: FILE*
-    let child_out: FILE*
-    engine_start(&pid, &child_in, &child_out)
-
     let line: char[1024]
     let response: char[1024]
+    let (pid, child_in, child_out) = engine_start()
 
     while (1) {
         printf("> ")
