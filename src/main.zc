@@ -17,7 +17,7 @@ def BG_COLOR       = ray::Color { r: 18, g: 18, b:18, a:255 }
 def FG_COLOR       = ray::LIGHTGRAY
 
 
-fn board_draw_symbol(sym:    char*,
+fn board_draw_symbol(sym:    string,
                      x:      int,
                      y:      int,
                      color:  ray::Color)
@@ -57,7 +57,7 @@ fn board_draw_grid()
     }
 }
 
-fn board_handle_click_on_cell(cell: char*) -> bool
+fn board_handle_click_on_cell(cell: string) -> bool
 {
     if (!ray::IsMouseButtonReleased(ray::MOUSE_BUTTON_LEFT)) {
         return false
@@ -88,9 +88,7 @@ fn board_handle_click_on_cell(cell: char*) -> bool
 
 fn main()
 {
-    let response: char[1024]
-    let (pid, child_in, child_out) = engine_start()
-
+    let engine = engine_start()
     ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui v0.0.1")
     ray::SetTargetFPS(60)
 
@@ -98,17 +96,21 @@ fn main()
     while (!ray::WindowShouldClose()) {
         if board_handle_click_on_cell(clicked_cell) {
             let request = "PLAY X {clicked_cell}\n"
-            if engine_get_response(request, pid, child_in, child_out, response, sizeof(response)) {
-                if (strncmp(response, "= PLAY", 6) == 0) {
-                    println "played {clicked_cell}"
-                } else if (strncmp(response, "? ", 2) == 0) {
-                    printf("error at %s: %s", clicked_cell, response + 2)
-                } else {
-                    println "{response}"
+            match engine_get_response(engine, request) {
+                Ok(resp) => {
+                    let r: String = (String) resp; // TODO: wtf with this pattern matching?
+                    if r.starts_with("= PLAY") {
+                        println "played {clicked_cell}"
+                    } else if r.starts_with("? ") {
+                        printf("error at %s: %s", clicked_cell, r.substring(2, r.length() - 2).c_str())
+                    } else {
+                        println "{r}"
+                    }
                 }
-            } else {
-                fprintf(stderr, "The engine has terminated\n")
-                break
+                Err(err) => {
+                    println "{err}"
+                    break
+                }
             }
         }
         ray::BeginDrawing()
@@ -118,8 +120,8 @@ fn main()
     }
 
     ray::CloseWindow()
-    fclose(child_in)
-    fclose(child_out)
+    fclose(engine.fin)
+    fclose(engine.fout)
     wait(NULL)
 
     return 0;

@@ -1,5 +1,13 @@
 import "unistd.h" as u
 import "sys/wait.h"
+import "std/result.zc"
+import "std/string.zc"
+
+struct Engine {
+    pid:  u::pid_t,
+    fin:  FILE*,
+    fout: FILE*,
+}
 
 fn process_is_dead(pid: u::pid_t) -> bool
 {
@@ -17,30 +25,28 @@ fn process_is_dead(pid: u::pid_t) -> bool
     return false
 }
 
-fn engine_get_response(request:       char*,
-                       pid:           u::pid_t,
-                       engine_in:     FILE*,
-                       engine_out:    FILE*,
-                       response:      char*,
-                       response_len:  int) -> bool
+fn engine_get_response_(engine:        Engine,
+                        request:       string,
+                        response:      string,
+                        response_len:  int) -> bool
 {
-    if process_is_dead(pid) {
+    if process_is_dead(engine.pid) {
         return false
     }
 
     let line: char[1024]
     response[0] = '\0'
-    fprintf(engine_in, "%s", request)
-    fflush(engine_in)
+    fprintf(engine.fin, "%s", request)
+    fflush(engine.fin)
 
-    if process_is_dead(pid) {
+    if process_is_dead(engine.pid) {
         return false
     }
 
-    while (fgets(line, sizeof(line), engine_out)) {
+    while (fgets(line, sizeof(line), engine.fout)) {
         // GTP response ends with empty line
         if (strcmp(line, "\n") == 0) {
-            return !process_is_dead(pid)
+            return !process_is_dead(engine.pid)
         }
         strncat(response, line, response_len - strlen(response) - 1)
     }
@@ -48,7 +54,17 @@ fn engine_get_response(request:       char*,
     return false
 }
 
-fn engine_start() -> (u::pid_t, FILE*, FILE*)
+fn engine_get_response(engine: Engine,
+                       request: string) -> Result<String>
+{
+    let response: char[1024]
+    if !engine_get_response_(engine, request, response, sizeof(response)) {
+        return Result<String>::Err("The engine has terminated")
+    }
+    return Result<String>::Ok(String::from(response))
+}
+
+fn engine_start() -> Engine
 {
     let pid:        u::pid_t
     let child_in:   FILE*
@@ -82,6 +98,6 @@ fn engine_start() -> (u::pid_t, FILE*, FILE*)
     child_in  = fdopen(to_cat[1], "w")
     child_out = fdopen(from_cat[0], "r")
 
-    return (pid, child_in, child_out)
+    return Engine { pid: pid, fin: child_in, fout: child_out }
 }
 
