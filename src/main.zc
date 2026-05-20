@@ -90,8 +90,9 @@ fn board_draw_message(message: string) -> void
     ray::DrawTextEx(font, message, ray::Vector2 { x: text_x, y: text_y }, MSG_FONT_SIZE, 1, FG_COLOR)
 }
 
-fn board_draw_grid(color: ray::Color)
+fn board_draw(game: Game*)
 {
+    let color: ray::Color = game_has_message(game) || game.is_over ? INACTIVE_COLOR : FG_COLOR
     let text: char[2]
     text[1] = '\0'
     for c in 0 ..= BOARD_SIZE {
@@ -186,7 +187,6 @@ fn main()
                             }
                         }
                         Err(err) => {
-                            println "{err}"
                             game_set_message(&game, String::new(err))
                             game.is_over = true
                         }
@@ -197,7 +197,7 @@ fn main()
         }
         ray::BeginDrawing()
         ray::ClearBackground(BG_COLOR)
-        board_draw_grid(has_message || game.is_over ? INACTIVE_COLOR : FG_COLOR)
+        board_draw(&game)
         if has_message {
             board_draw_message(game.current_message.c_str())
         }
