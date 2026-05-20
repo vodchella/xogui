@@ -70,6 +70,12 @@ fn engine_get_raw_response(engine: Engine,
     return Result<String>::Ok(String::from(response))
 }
 
+fn engine_send_command(engine: Engine,
+                       command: string) -> void
+{
+    engine_get_raw_response(engine, command)
+}
+
 fn engine_convert_response(raw_response: String) -> EngineResponse
 {
     if raw_response.starts_with("= PLAY") {

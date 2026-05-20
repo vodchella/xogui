@@ -12,6 +12,7 @@ import "engine.zc"
 def WINDOW_WIDTH     = 1000
 def WINDOW_HEIGHT    = 1000
 def BOARD_SIDE       = 10
+def BOARD_SIZE       = BOARD_SIDE * BOARD_SIDE
 def CELL_SIZE        = 70
 def FONT_SIZE        = CELL_SIZE - 20 - (10 * 2)
 def H_GRID_MARGIN    = (WINDOW_WIDTH  - (BOARD_SIDE * CELL_SIZE)) / 2
@@ -28,7 +29,7 @@ struct Game {
     current_message:       String,
     current_message_time:  u64,
     is_over:               bool,
-    board:                 String[BOARD_SIDE * BOARD_SIDE],
+    board:                 String[BOARD_SIZE],
 }
 
 
@@ -73,7 +74,7 @@ fn game_init() -> Game
         current_message_time: 0,
         is_over: false,
     }
-    for i in 0..< BOARD_SIDE * BOARD_SIDE {
+    for i in 0..< BOARD_SIZE {
         game.board[i] = String::new("")
     }
     return game
@@ -226,7 +227,6 @@ fn main()
                         Ok(raw_resp) => {
                             match engine_convert_response(raw_resp) {
                                 EngineResponse::MoveOk => {
-                                    println "played {cell}"
                                     game.board[cell_to_index(cell.c_str())] = String::new("X")
                                 }
                                 EngineResponse::Error(err) => {
@@ -255,6 +255,7 @@ fn main()
         ray::EndDrawing()
     }
 
+    engine_send_command(engine, "QUIT\n")
     ray::CloseWindow()
     fclose(engine.fin)
     fclose(engine.fout)
