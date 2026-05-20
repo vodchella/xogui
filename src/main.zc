@@ -107,15 +107,18 @@ fn main()
             Some(c) => {
                 let cell: String = (String) c; // TODO: wtf with this pattern matching?
                 let request = "PLAY X {cell}\n"
-                match engine_get_response(engine, request) {
-                    Ok(r) => {
-                        let resp: String = (String) r;
-                        if resp.starts_with("= PLAY") {
-                            println "played {cell}"
-                        } else if resp.starts_with("? ") {
-                            printf("error at %s: %s", cell.c_str(), resp.substring(2, resp.length() - 2).c_str())
-                        } else {
-                            println "{resp}"
+                match engine_get_raw_response(engine, request) {
+                    Ok(raw_resp) => {
+                        match engine_convert_response(raw_resp) {
+                            EngineResponse::MoveOk => {
+                                println "played {cell}"
+                            }
+                            EngineResponse::Error(err) => {
+                                printf("error at %s: %s", cell.c_str(), err.c_str())
+                            }
+                            EngineResponse::Unknown(msg) => {
+                                println "{msg}"
+                            }
                         }
                     }
                     Err(err) => {

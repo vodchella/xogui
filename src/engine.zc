@@ -9,6 +9,12 @@ struct Engine {
     fout: FILE*,
 }
 
+enum EngineResponse {
+    MoveOk,
+    Error(String),
+    Unknown(String),
+}
+
 fn process_is_dead(pid: u::pid_t) -> bool
 {
     let status: int
@@ -25,10 +31,10 @@ fn process_is_dead(pid: u::pid_t) -> bool
     return false
 }
 
-fn engine_get_response_(engine:        Engine,
-                        request:       string,
-                        response:      string,
-                        response_len:  int) -> bool
+fn engine_get_raw_response_(engine:        Engine,
+                            request:       string,
+                            response:      string,
+                            response_len:  int) -> bool
 {
     if process_is_dead(engine.pid) {
         return false
@@ -54,14 +60,25 @@ fn engine_get_response_(engine:        Engine,
     return false
 }
 
-fn engine_get_response(engine: Engine,
-                       request: string) -> Result<String>
+fn engine_get_raw_response(engine: Engine,
+                           request: string) -> Result<String>
 {
     let response: char[1024]
-    if !engine_get_response_(engine, request, response, sizeof(response)) {
+    if !engine_get_raw_response_(engine, request, response, sizeof(response)) {
         return Result<String>::Err("The engine has terminated")
     }
     return Result<String>::Ok(String::from(response))
+}
+
+fn engine_convert_response(raw_response: String) -> EngineResponse
+{
+    if raw_response.starts_with("= PLAY") {
+        return EngineResponse::MoveOk
+    } else if raw_response.starts_with("? ") {
+        return EngineResponse::Error(raw_response.substring(2, raw_response.length() - 2))
+    } else {
+        return EngineResponse::Unknown(raw_response)
+    }
 }
 
 fn engine_start() -> Engine
