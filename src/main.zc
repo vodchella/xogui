@@ -3,6 +3,7 @@
 
 import "unistd.h"   as u
 import "raylib.h"   as ray
+import "std/option.zc"
 import "engine.zc"
 
 
@@ -57,7 +58,7 @@ fn board_draw_grid()
     }
 }
 
-fn board_handle_click_on_cell(cell: string) -> bool
+fn board_handle_click_on_cell_(cell: string) -> bool
 {
     if (!ray::IsMouseButtonReleased(ray::MOUSE_BUTTON_LEFT)) {
         return false
@@ -85,6 +86,15 @@ fn board_handle_click_on_cell(cell: string) -> bool
     return true
 }
 
+fn board_handle_click_on_cell() -> Option<String>
+{
+    let clicked_cell: char[3]
+    if !board_handle_click_on_cell_(clicked_cell) {
+        return Option<String>::None()
+    }
+    return Option<String>::Some(String::from(clicked_cell))
+}
+
 
 fn main()
 {
@@ -92,26 +102,29 @@ fn main()
     ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui v0.0.1")
     ray::SetTargetFPS(60)
 
-    let clicked_cell: char[3]
     while (!ray::WindowShouldClose()) {
-        if board_handle_click_on_cell(clicked_cell) {
-            let request = "PLAY X {clicked_cell}\n"
-            match engine_get_response(engine, request) {
-                Ok(resp) => {
-                    let r: String = (String) resp; // TODO: wtf with this pattern matching?
-                    if r.starts_with("= PLAY") {
-                        println "played {clicked_cell}"
-                    } else if r.starts_with("? ") {
-                        printf("error at %s: %s", clicked_cell, r.substring(2, r.length() - 2).c_str())
-                    } else {
-                        println "{r}"
+        match board_handle_click_on_cell() {
+            Some(c) => {
+                let cell: String = (String) c; // TODO: wtf with this pattern matching?
+                let request = "PLAY X {cell}\n"
+                match engine_get_response(engine, request) {
+                    Ok(r) => {
+                        let resp: String = (String) r;
+                        if resp.starts_with("= PLAY") {
+                            println "played {cell}"
+                        } else if resp.starts_with("? ") {
+                            printf("error at %s: %s", cell.c_str(), resp.substring(2, resp.length() - 2).c_str())
+                        } else {
+                            println "{resp}"
+                        }
+                    }
+                    Err(err) => {
+                        println "{err}"
+                        break
                     }
                 }
-                Err(err) => {
-                    println "{err}"
-                    break
-                }
             }
+            _ => {}
         }
         ray::BeginDrawing()
         ray::ClearBackground(BG_COLOR)
