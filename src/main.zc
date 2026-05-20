@@ -5,23 +5,17 @@ import "unistd.h"   as u
 import "raylib.h"   as ray
 import "std/option.zc"
 import "std/time.zc"
+import "std/vec.zc"
 import "engine.zc"
-
-
-struct Game {
-    current_message:       String,
-    current_message_time:  u64,
-    is_over:               bool,
-}
 
 
 def WINDOW_WIDTH     = 1000
 def WINDOW_HEIGHT    = 1000
-def BOARD_SIZE       = 10
+def BOARD_SIDE       = 10
 def CELL_SIZE        = 70
 def FONT_SIZE        = CELL_SIZE - 20 - (10 * 2)
-def H_GRID_MARGIN    = (WINDOW_WIDTH  - (BOARD_SIZE * CELL_SIZE)) / 2
-def V_GRID_MARGIN    = (WINDOW_HEIGHT - (BOARD_SIZE * CELL_SIZE)) / 2
+def H_GRID_MARGIN    = (WINDOW_WIDTH  - (BOARD_SIDE * CELL_SIZE)) / 2
+def V_GRID_MARGIN    = (WINDOW_HEIGHT - (BOARD_SIDE * CELL_SIZE)) / 2
 def BG_COLOR         = ray::Color { r: 18, g: 18, b:18, a:255 }
 def FG_COLOR         = ray::LIGHTGRAY
 def INACTIVE_COLOR   = ray::DARKGRAY
@@ -30,13 +24,59 @@ def MSG_TIME         = 2 * 1000  // 2 sec
 def MSG_FONT_SIZE    = FONT_SIZE * 1.5
 
 
+struct Game {
+    current_message:       String,
+    current_message_time:  u64,
+    is_over:               bool,
+    board:                 String[BOARD_SIDE * BOARD_SIDE],
+}
+
+
+fn cell_to_index(cell: char*) -> int
+{
+    let x = cell[0] - 'A'
+    let y = cell[1] - '0'
+
+    return y * BOARD_SIDE + x
+}
+
+fn index_to_cell(index: int,
+                 out:   char*)
+{
+    let x = index % BOARD_SIDE
+    let y = index / BOARD_SIDE
+
+    out[0] = 'A' + x
+    out[1] = '0' + y
+    out[2] = '\0'
+}
+
+fn xy_to_index(x: int,
+               y: int) -> int
+{
+    return y * BOARD_SIDE + x
+}
+
+fn index_to_xy(index: int) -> (int, int)
+{
+    let x = index % BOARD_SIDE
+    let y = index / BOARD_SIDE
+
+    return (x, y)
+}
+
+
 fn game_init() -> Game
 {
-    return Game {
+    let game: Game = Game {
         current_message: String::new(""),
         current_message_time: 0,
-        is_over: false
+        is_over: false,
     }
+    for i in 0..< BOARD_SIDE * BOARD_SIDE {
+        game.board[i] = String::new("")
+    }
+    return game
 }
 
 fn game_set_message(game: Game*,
@@ -95,26 +135,36 @@ fn board_draw(game: Game*)
     let color: ray::Color = game_has_message(game) || game.is_over ? INACTIVE_COLOR : FG_COLOR
     let text: char[2]
     text[1] = '\0'
-    for c in 0 ..= BOARD_SIZE {
+    for c in 0 ..= BOARD_SIDE {
         let x  = H_GRID_MARGIN + (CELL_SIZE * c)
         let ys = V_GRID_MARGIN
-        let ye = ys + (BOARD_SIZE * CELL_SIZE)
+        let ye = ys + (BOARD_SIDE * CELL_SIZE)
         ray::DrawLine(x, ys, x, ye, color)
-        if (c < BOARD_SIZE) {
+        if (c < BOARD_SIDE) {
             text[0] = 'A' + c
             board_draw_symbol(text, x, ys - CELL_SIZE, color)
             board_draw_symbol(text, x, ye, color)
         }
     }
-    for r in 0 ..= BOARD_SIZE {
+    for r in 0 ..= BOARD_SIDE {
         let y  = V_GRID_MARGIN + (CELL_SIZE * r)
         let xs = H_GRID_MARGIN
-        let xe = xs + (BOARD_SIZE * CELL_SIZE)
+        let xe = xs + (BOARD_SIDE * CELL_SIZE)
         ray::DrawLine(xs, y, xe, y, color)
-        if (r < BOARD_SIZE) {
+        if (r < BOARD_SIDE) {
             text[0] = '9' - r
             board_draw_symbol(text, xs - CELL_SIZE, y, color)
             board_draw_symbol(text, xe, y, color)
+        }
+    }
+    for y in 0 ..< BOARD_SIDE {
+        for x in 0 ..< BOARD_SIDE {
+            let index = xy_to_index(x, y)
+            if (!game.board[index].length() == 0) {
+                let py = V_GRID_MARGIN + (CELL_SIZE * (BOARD_SIDE - y - 1))
+                let px = H_GRID_MARGIN + (CELL_SIZE * x)
+                board_draw_symbol(game.board[index].c_str(), px, py, color)
+            }
         }
     }
 }
@@ -129,8 +179,8 @@ fn board_handle_click_on_cell_(cell: string) -> bool
 
     let grid_x0 = H_GRID_MARGIN
     let grid_y0 = V_GRID_MARGIN
-    let grid_x1 = H_GRID_MARGIN + BOARD_SIZE * CELL_SIZE
-    let grid_y1 = V_GRID_MARGIN + BOARD_SIZE * CELL_SIZE
+    let grid_x1 = H_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
+    let grid_y1 = V_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
 
     if (mouse.x < grid_x0 || mouse.x >= grid_x1 ||
         mouse.y < grid_y0 || mouse.y >= grid_y1) {
@@ -177,6 +227,7 @@ fn main()
                             match engine_convert_response(raw_resp) {
                                 EngineResponse::MoveOk => {
                                     println "played {cell}"
+                                    game.board[cell_to_index(cell.c_str())] = String::new("X")
                                 }
                                 EngineResponse::Error(err) => {
                                     game_set_message(&game, String::new("{cell}: {err}"))
