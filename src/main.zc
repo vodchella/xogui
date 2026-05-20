@@ -9,8 +9,9 @@ import "engine.zc"
 
 
 struct Game {
-    current_message: String,
-    current_message_time: u64,
+    current_message:       String,
+    current_message_time:  u64,
+    is_over:               bool,
 }
 
 
@@ -34,6 +35,7 @@ fn game_init() -> Game
     return Game {
         current_message: String::new(""),
         current_message_time: 0,
+        is_over: false
     }
 }
 
@@ -164,7 +166,7 @@ fn main()
     while (!ray::WindowShouldClose()) {
         game_clear_message_if_needed(&game)
         let has_message: bool = game_has_message(&game)
-        if !has_message {
+        if !game.is_over && !has_message {
             match board_handle_click_on_cell() {
                 Some(c) => {
                     let cell: String = (String) c; // TODO: wtf with this pattern matching?
@@ -185,7 +187,8 @@ fn main()
                         }
                         Err(err) => {
                             println "{err}"
-                            break
+                            game_set_message(&game, String::new(err))
+                            game.is_over = true
                         }
                     }
                 }
@@ -194,7 +197,7 @@ fn main()
         }
         ray::BeginDrawing()
         ray::ClearBackground(BG_COLOR)
-        board_draw_grid(has_message ? INACTIVE_COLOR : FG_COLOR)
+        board_draw_grid(has_message || game.is_over ? INACTIVE_COLOR : FG_COLOR)
         if has_message {
             board_draw_message(game.current_message.c_str())
         }

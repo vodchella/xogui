@@ -65,7 +65,7 @@ fn engine_get_raw_response(engine: Engine,
 {
     let response: char[1024]
     if !engine_get_raw_response_(engine, request, response, sizeof(response)) {
-        return Result<String>::Err("The engine has terminated")
+        return Result<String>::Err("The engine has terminated\n")
     }
     return Result<String>::Ok(String::from(response))
 }
