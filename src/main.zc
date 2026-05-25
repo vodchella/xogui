@@ -234,6 +234,19 @@ fn main()
                     match engine_cmd_play(&engine, cell) {
                         EnginePlayResponse::MoveOk => {
                             game.board[cell_to_index(cell_dup.c_str())] = (byte) CELL_X
+                            match engine_cmd_genmove(&engine) {
+                                EngineGenMoveResponse::Move(cc) => {
+
+                                }
+                                EngineGenMoveResponse::Draw => {
+                                    game_set_message(&game, String::new("This is draw!\n"))
+                                    game.is_over = true
+                                }
+                                EngineGenMoveResponse::EngineError(err) => {
+                                    game_set_message(&game, err)
+                                    game.is_over = true
+                                }
+                            }
                         }
                         EnginePlayResponse::Unknown(msg) => {
                             game_set_message(&game, msg)

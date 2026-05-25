@@ -94,6 +94,11 @@ fn engine_convert_play_response(raw_response: String) -> EnginePlayResponse
     }
 }
 
+fn engine_convert_genmove_response(_raw_response: String) -> EngineGenMoveResponse
+{
+    return EngineGenMoveResponse::Draw
+}
+
 fn engine_cmd_play(engine: Engine*,
                    cell: String) -> EnginePlayResponse
 {
@@ -107,9 +112,16 @@ fn engine_cmd_play(engine: Engine*,
     }
 }
 
-fn engine_convert_genmove_response(_raw_response: String) -> EngineGenMoveResponse
+fn engine_cmd_genmove(engine: Engine*) -> EngineGenMoveResponse
 {
-    return EngineGenMoveResponse::Draw
+    match engine_get_raw_response(engine, "GEN_MOVE O\n") {
+        Ok(raw_resp) => {
+            return engine_convert_genmove_response(raw_resp)
+        }
+        Err(err) => {
+            return EngineGenMoveResponse::EngineError(String::new(err))
+        }
+    }
 }
 
 fn engine_start() -> Engine
