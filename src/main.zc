@@ -26,12 +26,16 @@ def MSG_COLOR        = ray::RED
 def MSG_TIME         = 2 * 1000  // 2 sec
 def MSG_FONT_SIZE    = FONT_SIZE * 1.5
 
+def CELL_EMPTY: byte  = 0
+def CELL_X: byte      = 1
+def CELL_O: byte      = 2
+
 
 struct Game {
     current_message:       String,
     current_message_time:  u64,
     is_over:               bool,
-    board:                 String[BOARD_SIZE],
+    board:                 byte[BOARD_SIZE],
 }
 
 
@@ -77,7 +81,7 @@ fn game_init() -> Game
         is_over: false,
     }
     for i in 0..< BOARD_SIZE {
-        game.board[i] = String::new("")
+        game.board[i] = (byte) CELL_EMPTY // TODO: make PR; CELL_EMPTY is already byte
     }
     return game
 }
@@ -160,15 +164,15 @@ fn board_draw(game: Game*)
             board_draw_symbol(text, xe, y, color)
         }
     }
-    let plx: String = String::new("X")
     for y in 0 ..< BOARD_SIDE {
         for x in 0 ..< BOARD_SIDE {
             let index = xy_to_index(x, y)
-            if (!game.board[index].length() == 0) {
+            if (!game.board[index] == CELL_EMPTY) {
                 let py = V_GRID_MARGIN + (CELL_SIZE * (BOARD_SIDE - y - 1))
                 let px = H_GRID_MARGIN + (CELL_SIZE * x)
-                let pl_color: ray::Color = game.board[index].eq(&plx) ? PL_X_COLOR : PL_O_COLOR
-                board_draw_symbol(game.board[index].c_str(), px, py, pl_color)
+                let pl_color: ray::Color = game.board[index] == CELL_X ? PL_X_COLOR : PL_O_COLOR
+                let pl_sym = game.board[index] == CELL_X ? "X\0" : "O\0"
+                board_draw_symbol(pl_sym, px, py, pl_color)
             }
         }
     }
@@ -225,13 +229,13 @@ fn main()
         if !game.is_over && !has_message {
             match board_handle_click_on_cell() {
                 Some(c) => {
-                    let cell: String = (String) c; // TODO: wtf with this pattern matching?
+                    let cell: String = (String) c; // TODO: make PR; wtf with this pattern matching?
                     let request = "PLAY X {cell}\n"
                     match engine_get_raw_response(engine, request) {
                         Ok(raw_resp) => {
                             match engine_convert_response(raw_resp) {
                                 EngineResponse::MoveOk => {
-                                    game.board[cell_to_index(cell.c_str())] = String::new("X")
+                                    game.board[cell_to_index(cell.c_str())] = (byte) CELL_X
                                 }
                                 EngineResponse::Error(err) => {
                                     game_set_message(&game, String::new("{cell}: {err}"))
