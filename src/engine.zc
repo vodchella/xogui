@@ -94,9 +94,15 @@ fn engine_convert_play_response(raw_response: String) -> EnginePlayResponse
     }
 }
 
-fn engine_convert_genmove_response(_raw_response: String) -> EngineGenMoveResponse
+fn engine_convert_genmove_response(raw_response: String) -> EngineGenMoveResponse
 {
-    return EngineGenMoveResponse::Draw
+    if raw_response.starts_with("? draw") {
+        return EngineGenMoveResponse::Draw
+    } else if raw_response.starts_with("= ") {
+        return EngineGenMoveResponse::Move(raw_response.substring(2, raw_response.length() - 2))
+    } else {
+        return EngineGenMoveResponse::EngineError(String::new("Unknown response in GEN_MOVE response"))
+    }
 }
 
 fn engine_cmd_play(engine: Engine*,

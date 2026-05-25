@@ -236,7 +236,7 @@ fn main()
                             game.board[cell_to_index(cell_dup.c_str())] = (byte) CELL_X
                             match engine_cmd_genmove(&engine) {
                                 EngineGenMoveResponse::Move(cc) => {
-
+                                    game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
                                 }
                                 EngineGenMoveResponse::Draw => {
                                     game_set_message(&game, String::new("This is draw!\n"))
