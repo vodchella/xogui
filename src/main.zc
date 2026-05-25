@@ -234,15 +234,40 @@ fn main()
                     match engine_cmd_play(&engine, cell) {
                         EnginePlayResponse::MoveOk => {
                             game.board[cell_to_index(cell_dup.c_str())] = (byte) CELL_X
-                            match engine_cmd_genmove(&engine) {
-                                EngineGenMoveResponse::Move(cc) => {
-                                    game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
+                            //TODO: factor out checking for the winner
+                            match engine_cmd_getwinner(&engine) {  // Check for win after player move
+                                EngineGetWinnerResponse::None => {
+                                    match engine_cmd_genmove(&engine) {
+                                        EngineGenMoveResponse::Move(cc) => {
+                                            game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
+                                            //TODO: factor out checking for the winner
+                                            match engine_cmd_getwinner(&engine) {  // Check for win after engine move
+                                                EngineGetWinnerResponse::Winner(w) => {
+                                                    game_set_message(&game, String::new("{w} wins!"))
+                                                    game.is_over = true
+                                                }
+                                                EngineGetWinnerResponse::EngineError(err) => {
+                                                    game_set_message(&game, err)
+                                                    game.is_over = true
+                                                }
+                                                _ => {}
+                                            }
+                                        }
+                                        EngineGenMoveResponse::Draw => {
+                                            game_set_message(&game, String::new("This is draw!\n"))
+                                            game.is_over = true
+                                        }
+                                        EngineGenMoveResponse::EngineError(err) => {
+                                            game_set_message(&game, err)
+                                            game.is_over = true
+                                        }
+                                    }
                                 }
-                                EngineGenMoveResponse::Draw => {
-                                    game_set_message(&game, String::new("This is draw!\n"))
+                                EngineGetWinnerResponse::Winner(w) => {
+                                    game_set_message(&game, String::new("{w} wins!"))
                                     game.is_over = true
                                 }
-                                EngineGenMoveResponse::EngineError(err) => {
+                                EngineGetWinnerResponse::EngineError(err) => {
                                     game_set_message(&game, err)
                                     game.is_over = true
                                 }

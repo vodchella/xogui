@@ -22,6 +22,13 @@ enum EngineGenMoveResponse {
     EngineError(String),
 }
 
+enum EngineGetWinnerResponse {
+    Winner(String),
+    None,
+    EngineError(String),
+}
+
+
 fn process_is_dead(pid: u::pid_t) -> bool
 {
     let status: int
@@ -105,6 +112,17 @@ fn engine_convert_genmove_response(raw_response: String) -> EngineGenMoveRespons
     }
 }
 
+fn engine_convert_getwinner_response(raw_response: String) -> EngineGetWinnerResponse
+{
+    if raw_response.starts_with("= ?") {
+        return EngineGetWinnerResponse::None
+    } else if raw_response.starts_with("= ") {
+        return EngineGetWinnerResponse::Winner(raw_response.substring(2, raw_response.length() - 1))
+    } else {
+        return EngineGetWinnerResponse::EngineError(String::new("Unknown response in WINNER response"))
+    }
+}
+
 fn engine_cmd_play(engine: Engine*,
                    cell: String) -> EnginePlayResponse
 {
@@ -126,6 +144,18 @@ fn engine_cmd_genmove(engine: Engine*) -> EngineGenMoveResponse
         }
         Err(err) => {
             return EngineGenMoveResponse::EngineError(String::new(err))
+        }
+    }
+}
+
+fn engine_cmd_getwinner(engine: Engine*) -> EngineGetWinnerResponse
+{
+    match engine_get_raw_response(engine, "WINNER\n") {
+        Ok(raw_resp) => {
+            return engine_convert_getwinner_response(raw_resp)
+        }
+        Err(err) => {
+            return EngineGetWinnerResponse::EngineError(String::new(err))
         }
     }
 }
