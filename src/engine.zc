@@ -9,10 +9,17 @@ struct Engine {
     fout: FILE*,
 }
 
-enum EngineResponse {
+enum EnginePlayResponse {
     MoveOk,
-    Error(String),
     Unknown(String),
+    Error(String),
+    EngineError(String),
+}
+
+enum EngineGenMoveResponse {
+    Move(String),
+    Draw,
+    EngineError(String),
 }
 
 fn process_is_dead(pid: u::pid_t) -> bool
@@ -31,7 +38,7 @@ fn process_is_dead(pid: u::pid_t) -> bool
     return false
 }
 
-fn engine_get_raw_response_(engine:        Engine,
+fn engine_get_raw_response_(engine:        Engine*,
                             request:       string,
                             response:      string,
                             response_len:  int) -> bool
@@ -60,7 +67,7 @@ fn engine_get_raw_response_(engine:        Engine,
     return false
 }
 
-fn engine_get_raw_response(engine: Engine,
+fn engine_get_raw_response(engine: Engine*,
                            request: string) -> Result<String>
 {
     let response: char[1024]
@@ -70,21 +77,39 @@ fn engine_get_raw_response(engine: Engine,
     return Result<String>::Ok(String::from(response))
 }
 
-fn engine_send_command(engine: Engine,
+fn engine_send_command(engine: Engine*,
                        command: string) -> void
 {
     engine_get_raw_response(engine, command)
 }
 
-fn engine_convert_response(raw_response: String) -> EngineResponse
+fn engine_convert_play_response(raw_response: String) -> EnginePlayResponse
 {
     if raw_response.starts_with("= PLAY") {
-        return EngineResponse::MoveOk
+        return EnginePlayResponse::MoveOk
     } else if raw_response.starts_with("? ") {
-        return EngineResponse::Error(raw_response.substring(2, raw_response.length() - 2))
+        return EnginePlayResponse::Error(raw_response.substring(2, raw_response.length() - 2))
     } else {
-        return EngineResponse::Unknown(raw_response)
+        return EnginePlayResponse::Unknown(raw_response)
     }
+}
+
+fn engine_cmd_play(engine: Engine*,
+                   cell: String) -> EnginePlayResponse
+{
+    match engine_get_raw_response(engine, "PLAY X {cell}\n") {
+        Ok(raw_resp) => {
+            return engine_convert_play_response(raw_resp)
+        }
+        Err(err) => {
+            return EnginePlayResponse::EngineError(String::new(err))
+        }
+    }
+}
+
+fn engine_convert_genmove_response(_raw_response: String) -> EngineGenMoveResponse
+{
+    return EngineGenMoveResponse::Draw
 }
 
 fn engine_start() -> Engine

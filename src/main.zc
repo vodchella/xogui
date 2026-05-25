@@ -229,24 +229,20 @@ fn main()
         if !game.is_over && !has_message {
             match board_handle_click_on_cell() {
                 Some(c) => {
-                    let cell: String = (String) c; // TODO: make PR; wtf with this pattern matching?
-                    let request = "PLAY X {cell}\n"
-                    match engine_get_raw_response(engine, request) {
-                        Ok(raw_resp) => {
-                            match engine_convert_response(raw_resp) {
-                                EngineResponse::MoveOk => {
-                                    game.board[cell_to_index(cell.c_str())] = (byte) CELL_X
-                                }
-                                EngineResponse::Error(err) => {
-                                    game_set_message(&game, String::new("{cell}: {err}"))
-                                }
-                                EngineResponse::Unknown(msg) => {
-                                    game_set_message(&game, msg)
-                                }
-                            }
+                    let cell: String     = (String) c; // TODO: make PR; wtf with this pattern matching?
+                    let cell_dup: String = String::new(cell.c_str()) //TODO: why i need to duplicate it?
+                    match engine_cmd_play(&engine, cell) {
+                        EnginePlayResponse::MoveOk => {
+                            game.board[cell_to_index(cell_dup.c_str())] = (byte) CELL_X
                         }
-                        Err(err) => {
-                            game_set_message(&game, String::new(err))
+                        EnginePlayResponse::Unknown(msg) => {
+                            game_set_message(&game, msg)
+                        }
+                        EnginePlayResponse::Error(err) => {
+                            game_set_message(&game, String::new("{cell_dup}: {err}"))
+                        }
+                        EnginePlayResponse::EngineError(err) => {
+                            game_set_message(&game, err)
                             game.is_over = true
                         }
                     }
@@ -263,7 +259,7 @@ fn main()
         ray::EndDrawing()
     }
 
-    engine_send_command(engine, "QUIT\n")
+    engine_send_command(&engine, "QUIT\n")
     ray::CloseWindow()
     fclose(engine.fin)
     fclose(engine.fout)
