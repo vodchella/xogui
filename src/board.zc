@@ -1,0 +1,120 @@
+import "raylib.h"       as ray
+import "defines.zc"
+import "game.zc"
+
+
+fn board_draw_symbol(sym:    string,
+                     x:      int,
+                     y:      int,
+                     color:  ray::Color) -> void
+{
+    let font      = ray::GetFontDefault()
+    let text_size = ray::MeasureTextEx(font, sym, FONT_SIZE, 1)
+    let text_x    = x + (CELL_SIZE - text_size.x) / 2
+    let text_y    = y + (CELL_SIZE - text_size.y) / 2
+    ray::DrawTextEx(font, sym, ray::Vector2 { x: text_x, y: text_y }, FONT_SIZE, 1, color)
+}
+
+fn board_draw_message(message: string) -> void
+{
+    let font       = ray::GetFontDefault()
+    let text_size  = ray::MeasureTextEx(font, message, MSG_FONT_SIZE, 1)
+    let text_y_gap = MSG_FONT_SIZE / 2
+    let text_x_gap = MSG_FONT_SIZE / 2
+    let rect_w_gap = MSG_FONT_SIZE / 1.5
+    let rect_h_gap = 0
+    let rect_w     = text_size.x + rect_w_gap
+    let rect_h     = text_size.y + rect_h_gap
+    let rect_x     = (WINDOW_WIDTH - rect_w) / 2
+    let rect_y     = (WINDOW_HEIGHT - rect_h) / 2
+    let text_x     = rect_x + text_x_gap
+    let text_y     = rect_y + text_y_gap
+    ray::DrawRectangle(rect_x, rect_y, rect_w, rect_h, MSG_COLOR)
+    ray::DrawTextEx(font, message, ray::Vector2 { x: text_x, y: text_y }, MSG_FONT_SIZE, 1, FG_COLOR)
+}
+
+fn board_draw(game: Game*)
+{
+    let color: ray::Color = game_has_message(game) || game.is_over || !game.wait_for_pl_move
+        ? INACTIVE_COLOR
+        : FG_COLOR
+    ray::SetMouseCursor(game.wait_for_pl_move && !game.is_over
+        ? ray::MOUSE_CURSOR_DEFAULT
+        : ray::MOUSE_CURSOR_NOT_ALLOWED
+    )
+
+    let text: char[2]
+    text[1] = '\0'
+    for c in 0 ..= BOARD_SIDE {
+        let x  = H_GRID_MARGIN + (CELL_SIZE * c)
+        let ys = V_GRID_MARGIN
+        let ye = ys + (BOARD_SIDE * CELL_SIZE)
+        ray::DrawLine(x, ys, x, ye, color)
+        if (c < BOARD_SIDE) {
+            text[0] = 'A' + c
+            board_draw_symbol(text, x, ys - CELL_SIZE, color)
+            board_draw_symbol(text, x, ye, color)
+        }
+    }
+    for r in 0 ..= BOARD_SIDE {
+        let y  = V_GRID_MARGIN + (CELL_SIZE * r)
+        let xs = H_GRID_MARGIN
+        let xe = xs + (BOARD_SIDE * CELL_SIZE)
+        ray::DrawLine(xs, y, xe, y, color)
+        if (r < BOARD_SIDE) {
+            text[0] = '9' - r
+            board_draw_symbol(text, xs - CELL_SIZE, y, color)
+            board_draw_symbol(text, xe, y, color)
+        }
+    }
+    for y in 0 ..< BOARD_SIDE {
+        for x in 0 ..< BOARD_SIDE {
+            let index = xy_to_index(x, y)
+            if (!game.board[index] == CELL_EMPTY) {
+                let py = V_GRID_MARGIN + (CELL_SIZE * (BOARD_SIDE - y - 1))
+                let px = H_GRID_MARGIN + (CELL_SIZE * x)
+                let pl_color: ray::Color = game.board[index] == CELL_X ? PL_X_COLOR : PL_O_COLOR
+                let pl_sym = game.board[index] == CELL_X ? "X\0" : "O\0"
+                board_draw_symbol(pl_sym, px, py, pl_color)
+            }
+        }
+    }
+}
+
+fn board_handle_click_on_cell_(cell: string) -> bool
+{
+    if (!ray::IsMouseButtonReleased(ray::MOUSE_BUTTON_LEFT)) {
+        return false
+    }
+
+    let mouse = ray::GetMousePosition()
+
+    let grid_x0 = H_GRID_MARGIN
+    let grid_y0 = V_GRID_MARGIN
+    let grid_x1 = H_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
+    let grid_y1 = V_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
+
+    if (mouse.x < grid_x0 || mouse.x >= grid_x1 ||
+        mouse.y < grid_y0 || mouse.y >= grid_y1) {
+        return false
+    }
+
+    let col = ((int) mouse.x - grid_x0) / CELL_SIZE
+    let row = ((int) mouse.y - grid_y0) / CELL_SIZE
+
+    cell[0] = 'A' + col
+    cell[1] = '9' - row
+    cell[2] = '\0'
+
+    return true
+}
+
+fn board_handle_click_on_cell() -> Option<String>
+{
+    let clicked_cell: char[3]
+    if !board_handle_click_on_cell_(clicked_cell) {
+        return Option<String>::None()
+    }
+    return Option<String>::Some(String::from(clicked_cell))
+}
+
