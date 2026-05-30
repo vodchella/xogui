@@ -35,6 +35,8 @@ struct Game {
     current_message:       String,
     current_message_time:  u64,
     is_over:               bool,
+    wait_for_pl_move:      bool,
+    check_for_winner:      bool,
     board:                 byte[BOARD_SIZE],
 }
 
@@ -79,8 +81,10 @@ fn game_init() -> Game
         current_message: String::new(""),
         current_message_time: 0,
         is_over: false,
+        wait_for_pl_move: true,
+        check_for_winner: false,
     }
-    for i in 0..< BOARD_SIZE {
+    for i in 0..< BOARD_SIZE { // TODO: use memset
         game.board[i] = (byte) CELL_EMPTY // TODO: make PR; CELL_EMPTY is already byte
     }
     return game
@@ -238,52 +242,58 @@ fn main()
     while (!ray::WindowShouldClose()) {
         game_clear_message_if_needed(&game)
         let has_message: bool = game_has_message(&game)
-        if !game.is_over && !has_message {
+
+        // Make opponent's move
+        if !has_message && !game.wait_for_pl_move {
+            match engine_cmd_genmove(&engine) {
+                EngineGenMoveResponse::Move(cc) => {
+                    game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
+                    game.wait_for_pl_move = true
+                    game.check_for_winner = true
+                }
+                EngineGenMoveResponse::Draw => {
+                    game_set_message(&game, String::new("This is draw!\n"))
+                    game.is_over = true
+                }
+                EngineGenMoveResponse::EngineError(err) => {
+                    game_set_message(&game, err)
+                    game.is_over = true
+                }
+            }
+        }
+
+        // Check for winner
+        if !has_message && game.check_for_winner {
+            game.check_for_winner = false
+            // TODO: Check for draw
+            match engine_cmd_getwinner(&engine) {
+                EngineGetWinnerResponse::Winner(w) => {
+                    if (game.wait_for_pl_move) {
+                        game_set_message(&game, String::new("Opponent wins!\n"))
+                    } else {
+                        game_set_message(&game, String::new("You win!\n"))
+                    }
+                    game.is_over = true
+                }
+                EngineGetWinnerResponse::EngineError(err) => {
+                    game_set_message(&game, err)
+                    game.is_over = true
+                }
+                _ => {}
+            }
+        }
+
+        // Handle player's move
+        if !game.is_over && !has_message && game.wait_for_pl_move {
             match board_handle_click_on_cell() {
                 Some(c) => {
                     let cell: String     = (String) c; // TODO: make PR; wtf with this pattern matching?
                     let cell_dup: String = String::new(cell.c_str()) //TODO: why i need to duplicate it?
+                    game.check_for_winner = true
                     match engine_cmd_play(&engine, cell) {
                         EnginePlayResponse::MoveOk => {
                             game.board[cell_to_index(cell_dup.c_str())] = (byte) CELL_X
-                            //TODO: factor out checking for the winner
-                            match engine_cmd_getwinner(&engine) {  // Check for win after player move
-                                EngineGetWinnerResponse::None => {
-                                    match engine_cmd_genmove(&engine) {
-                                        EngineGenMoveResponse::Move(cc) => {
-                                            game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
-                                            //TODO: factor out checking for the winner
-                                            match engine_cmd_getwinner(&engine) {  // Check for the win after engine move
-                                                EngineGetWinnerResponse::Winner(w) => {
-                                                    game_set_message(&game, String::new("Opponent wins!\n"))
-                                                    game.is_over = true
-                                                }
-                                                EngineGetWinnerResponse::EngineError(err) => {
-                                                    game_set_message(&game, err)
-                                                    game.is_over = true
-                                                }
-                                                _ => {}
-                                            }
-                                        }
-                                        EngineGenMoveResponse::Draw => {
-                                            game_set_message(&game, String::new("This is draw!\n"))
-                                            game.is_over = true
-                                        }
-                                        EngineGenMoveResponse::EngineError(err) => {
-                                            game_set_message(&game, err)
-                                            game.is_over = true
-                                        }
-                                    }
-                                }
-                                EngineGetWinnerResponse::Winner(w) => {
-                                    game_set_message(&game, String::new("You win!\n"))
-                                    game.is_over = true
-                                }
-                                EngineGetWinnerResponse::EngineError(err) => {
-                                    game_set_message(&game, err)
-                                    game.is_over = true
-                                }
-                            }
+                            game.wait_for_pl_move = false
                         }
                         EnginePlayResponse::Unknown(msg) => {
                             game_set_message(&game, msg)
@@ -300,6 +310,8 @@ fn main()
                 _ => {}
             }
         }
+
+        // Drawing
         ray::BeginDrawing()
         ray::ClearBackground(BG_COLOR)
         board_draw(&game)
