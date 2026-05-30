@@ -119,7 +119,7 @@ fn engine_convert_getwinner_response(raw_response: String) -> EngineGetWinnerRes
     if raw_response.starts_with("= ?") {
         return EngineGetWinnerResponse::None
     } else if raw_response.starts_with("= ") {
-        return EngineGetWinnerResponse::Winner(raw_response.substring(2, raw_response.length() - 1))
+        return EngineGetWinnerResponse::Winner(raw_response.substring(2, raw_response.length() - 2))
     } else {
         return EngineGetWinnerResponse::EngineError(String::new("Unknown response in WINNER response"))
     }

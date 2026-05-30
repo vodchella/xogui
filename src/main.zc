@@ -241,9 +241,9 @@ fn main()
                                         EngineGenMoveResponse::Move(cc) => {
                                             game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
                                             //TODO: factor out checking for the winner
-                                            match engine_cmd_getwinner(&engine) {  // Check for win after engine move
+                                            match engine_cmd_getwinner(&engine) {  // Check for the win after engine move
                                                 EngineGetWinnerResponse::Winner(w) => {
-                                                    game_set_message(&game, String::new("{w} wins!"))
+                                                    game_set_message(&game, String::new("Opponent wins!\n"))
                                                     game.is_over = true
                                                 }
                                                 EngineGetWinnerResponse::EngineError(err) => {
@@ -264,7 +264,7 @@ fn main()
                                     }
                                 }
                                 EngineGetWinnerResponse::Winner(w) => {
-                                    game_set_message(&game, String::new("{w} wins!"))
+                                    game_set_message(&game, String::new("You win!\n"))
                                     game.is_over = true
                                 }
                                 EngineGetWinnerResponse::EngineError(err) => {
