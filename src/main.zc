@@ -218,9 +218,21 @@ fn board_handle_click_on_cell() -> Option<String>
 
 fn main()
 {
-    let engine = engine_start()
-    let game   = game_init()
-    ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui v0.0.1")
+    let engine  = engine_start()
+    let game    = game_init()
+
+    let engine_name    = String::new("?")
+    let engine_version = String::new("?")
+    match engine_cmd_getname(&engine) {
+        Ok(v)            => { engine_name = v }
+        EngineError(err) => { eprint "Unknown engine name" }
+    }
+    match engine_cmd_getversion(&engine) {
+        Ok(v)            => { engine_version = v }
+        EngineError(err) => { eprint "Unknown engine version" }
+    }
+
+    ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui 0.0.1 ({engine_name} engine {engine_version})")
     ray::SetTargetFPS(60)
 
     while (!ray::WindowShouldClose()) {
