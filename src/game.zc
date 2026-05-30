@@ -1,0 +1,47 @@
+import "std/time.zc"
+import "defines.zc"
+
+
+struct Game {
+    current_message:       String,
+    current_message_time:  u64,
+    is_over:               bool,
+    wait_for_pl_move:      bool,
+    check_for_winner:      bool,
+    board:                 byte[BOARD_SIZE],
+}
+
+
+fn game_init() -> Game
+{
+    let game: Game = Game {
+        current_message: String::new(""),
+        current_message_time: 0,
+        is_over: false,
+        wait_for_pl_move: true,
+        check_for_winner: false,
+    }
+    memset(game.board, CELL_EMPTY, BOARD_SIZE - 1)
+    return game
+}
+
+fn game_set_message(game: Game*,
+                    msg:  String) -> void
+{
+    game.current_message = msg
+    game.current_message_time = Time::now()
+}
+
+fn game_clear_message_if_needed(game: Game*) -> void
+{
+    if Time::now() - game.current_message_time > MSG_TIME {
+        game.current_message_time = 0
+        game.current_message = String::new("")
+    }
+}
+
+fn game_has_message(game: Game*) -> bool
+{
+    return game.current_message_time != 0
+}
+
