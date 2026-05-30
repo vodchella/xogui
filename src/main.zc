@@ -143,7 +143,14 @@ fn board_draw_message(message: string) -> void
 
 fn board_draw(game: Game*)
 {
-    let color: ray::Color = game_has_message(game) || game.is_over ? INACTIVE_COLOR : FG_COLOR
+    let color: ray::Color = game_has_message(game) || game.is_over || !game.wait_for_pl_move
+        ? INACTIVE_COLOR
+        : FG_COLOR
+    ray::SetMouseCursor(game.wait_for_pl_move && !game.is_over
+        ? ray::MOUSE_CURSOR_DEFAULT
+        : ray::MOUSE_CURSOR_NOT_ALLOWED
+    )
+
     let text: char[2]
     text[1] = '\0'
     for c in 0 ..= BOARD_SIDE {
@@ -222,11 +229,12 @@ fn board_handle_click_on_cell() -> Option<String>
 
 fn main()
 {
-    let engine  = engine_start()
-    let game    = game_init()
-
+    let engine         = engine_start()
+    let game           = game_init()
     let engine_name    = String::new("?")
     let engine_version = String::new("?")
+
+    // Fetch engine name and version
     match engine_cmd_getname(&engine) {
         Ok(v)            => { engine_name = v }
         EngineError(err) => { eprint "Unknown engine name" }
@@ -244,7 +252,7 @@ fn main()
         let has_message: bool = game_has_message(&game)
 
         // Make opponent's move
-        if !has_message && !game.wait_for_pl_move {
+        if !game.is_over && !has_message && !game.wait_for_pl_move {
             match engine_cmd_genmove(&engine) {
                 EngineGenMoveResponse::Move(cc) => {
                     game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
@@ -289,11 +297,11 @@ fn main()
                 Some(c) => {
                     let cell: String     = (String) c; // TODO: make PR; wtf with this pattern matching?
                     let cell_dup: String = String::new(cell.c_str()) //TODO: why i need to duplicate it?
-                    game.check_for_winner = true
                     match engine_cmd_play(&engine, cell) {
                         EnginePlayResponse::MoveOk => {
                             game.board[cell_to_index(cell_dup.c_str())] = (byte) CELL_X
                             game.wait_for_pl_move = false
+                            game.check_for_winner = true
                         }
                         EnginePlayResponse::Unknown(msg) => {
                             game_set_message(&game, msg)
