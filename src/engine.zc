@@ -56,6 +56,7 @@ fn engine_get_raw_response_(engine:        Engine*,
 
     let line: char[1024]
     response[0] = '\0'
+    print "?> {request}"
     fprintf(engine.fin, "%s", request)
     fflush(engine.fin)
 
@@ -66,6 +67,7 @@ fn engine_get_raw_response_(engine:        Engine*,
     while (fgets(line, sizeof(line), engine.fout)) {
         // GTP response ends with empty line
         if (strcmp(line, "\n") == 0) {
+            print "!> {response}"
             return !process_is_dead(engine.pid)
         }
         strncat(response, line, response_len - strlen(response) - 1)
