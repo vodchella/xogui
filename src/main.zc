@@ -6,6 +6,7 @@ import "raylib.h"   as ray
 import "std/option.zc"
 import "std/time.zc"
 import "defines.zc"
+import "utils.zc"
 import "engine.zc"
 
 
@@ -16,40 +17,6 @@ struct Game {
     wait_for_pl_move:      bool,
     check_for_winner:      bool,
     board:                 byte[BOARD_SIZE],
-}
-
-
-fn cell_to_index(cell: char*) -> int
-{
-    let x = cell[0] - 'A'
-    let y = cell[1] - '0'
-
-    return y * BOARD_SIDE + x
-}
-
-fn index_to_cell(index: int,
-                 out:   char*)
-{
-    let x = index % BOARD_SIDE
-    let y = index / BOARD_SIDE
-
-    out[0] = 'A' + x
-    out[1] = '0' + y
-    out[2] = '\0'
-}
-
-fn xy_to_index(x: int,
-               y: int) -> int
-{
-    return y * BOARD_SIDE + x
-}
-
-fn index_to_xy(index: int) -> (int, int)
-{
-    let x = index % BOARD_SIDE
-    let y = index / BOARD_SIDE
-
-    return (x, y)
 }
 
 

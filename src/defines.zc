@@ -18,3 +18,4 @@ def MSG_FONT_SIZE    = FONT_SIZE * 1.5
 def CELL_EMPTY: byte  = 0
 def CELL_X: byte      = 1
 def CELL_O: byte      = 2
+
