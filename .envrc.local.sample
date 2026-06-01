@@ -1,3 +1,4 @@
 export PATH="/path/to/zenc/bin:$PATH"
 export ZC_ROOT="/path/to/zenc/share/zenc"
 export RAYLIB="/path/to/raylib-5.5"
+export CC="/path/to/cc"
