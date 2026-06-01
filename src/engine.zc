@@ -145,9 +145,9 @@ fn engine_convert_getwinner_response(raw_response: String) -> EngineGetWinnerRes
 }
 
 fn engine_cmd_play(engine: Engine*,
-                   cell: String) -> EnginePlayResponse
+                   cell: String*) -> EnginePlayResponse
 {
-    match engine_get_raw_response(engine, "PLAY X {cell}\n") {
+    match engine_get_raw_response(engine, "PLAY X {cell.c_str()}\n") {
         Ok(raw_resp) => {
             return engine_convert_play_response(raw_resp)
         }

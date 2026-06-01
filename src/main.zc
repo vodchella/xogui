@@ -32,7 +32,7 @@ fn main()
     ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui 0.0.1 ({engine_name} engine {engine_version})")
     ray::SetTargetFPS(60)
 
-    while (!ray::WindowShouldClose()) {
+    while !ray::WindowShouldClose() {
         game_clear_message_if_needed(&game)
         let has_message: bool = game_has_message(&game)
 
@@ -40,7 +40,8 @@ fn main()
         if !game.is_over && !has_message && !game.wait_for_pl_move {
             match engine_cmd_genmove(&engine) {
                 EngineGenMoveResponse::Move(cc) => {
-                    game.board[cell_to_index(cc.c_str())] = (byte) CELL_O
+                    let index: int = cc.c_str() |> cell_to_index
+                    game.board[index] = (byte) CELL_O
                     game.wait_for_pl_move = true
                     game.check_for_winner = true
                 }
@@ -61,11 +62,12 @@ fn main()
             // TODO: Check for the draw, XOml doesn't support it for now
             match engine_cmd_getwinner(&engine) {
                 EngineGetWinnerResponse::Winner(w) => {
-                    if (game.wait_for_pl_move) {
-                        game_set_message(&game, String::new("Opponent wins!\n"))
-                    } else {
-                        game_set_message(&game, String::new("You win!\n"))
-                    }
+                    game_set_message(
+                        &game,
+                        game.wait_for_pl_move
+                            ? String::new("Opponent wins!\n")
+                            : String::new("You win!\n")
+                    )
                     game.is_over = true
                 }
                 EngineGetWinnerResponse::EngineError(err) => {
@@ -81,10 +83,10 @@ fn main()
             match board_handle_click_on_cell() {
                 Some(c) => {
                     let cell: String     = (String) c; // TODO: make PR; wtf with this pattern matching?
-                    let cell_dup: String = String::new(cell.c_str()) //INFO: why i need to duplicate it?
-                    match engine_cmd_play(&engine, cell) {
+                    match engine_cmd_play(&engine, &cell) {
                         EnginePlayResponse::MoveOk => {
-                            game.board[cell_to_index(cell_dup.c_str())] = (byte) CELL_X
+                            let index: int = cell.c_str() |> cell_to_index
+                            game.board[index] = (byte) CELL_X
                             game.wait_for_pl_move = false
                             game.check_for_winner = true
                         }
@@ -92,7 +94,7 @@ fn main()
                             game_set_message(&game, msg)
                         }
                         EnginePlayResponse::Error(err) => {
-                            game_set_message(&game, String::new("{cell_dup}: {err}"))
+                            game_set_message(&game, String::new("{cell}: {err}"))
                         }
                         EnginePlayResponse::EngineError(err) => {
                             game_set_message(&game, err)
