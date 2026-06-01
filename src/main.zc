@@ -1,6 +1,5 @@
 //> link: ${RAYLIB}/lib/libraylib.a -lm
 //> include: ${RAYLIB}/include
-//> cflag: -DRAYGUI_IMPLEMENTATION
 
 
 import "unistd.h"            as u
@@ -35,7 +34,7 @@ fn main()
     ray::SetTargetFPS(60)
     gui::GuiSetStyle(gui::DEFAULT, gui::TEXT_SIZE, FONT_SIZE * 1.2)
 
-    while !ray::WindowShouldClose() {
+    while !game.quit_requested && !ray::WindowShouldClose() {
         game_clear_message_if_needed(&game)
         let has_message: bool = game_has_message(&game)
 

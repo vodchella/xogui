@@ -59,6 +59,26 @@ fn board_draw_message(message: string) -> void
     ray::DrawTextEx(font, message, ray::Vector2 { x: text_x, y: text_y }, MSG_FONT_SIZE, 1, FG_COLOR)
 }
 
+fn board_draw_controls(game: Game*)
+{
+    def BUTTON_WIDTH  = 300
+    def BUTTON_HEIGHT = 50
+    def BUTTON_GAP    = 10
+    def BUTTON_TOP    = WINDOW_HEIGHT - BUTTON_HEIGHT - (3 * BUTTON_GAP) - V_GRID_GAP / 2
+    def BUTTON_NEW_GAME_LEFT = (WINDOW_WIDTH - BUTTON_WIDTH*2) / 2 - BUTTON_GAP
+    def BUTTON_EXIT_LEFT     = BUTTON_NEW_GAME_LEFT + BUTTON_WIDTH + 2 * BUTTON_GAP
+
+    let new_game_button_rect = gui::Rectangle { x: BUTTON_NEW_GAME_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }
+    let exit_button_rect     = gui::Rectangle { x: BUTTON_EXIT_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }
+    if gui::GuiButton(new_game_button_rect, "New game") {
+        print "New game\n"
+    }
+    if gui::GuiButton(exit_button_rect, "Exit") {
+        print "Exit\n"
+        game.quit_requested = true
+    }
+}
+
 fn board_draw(game: Game*)
 {
     let color: ray::Color = game_has_message(game) || game.is_over || !game.wait_for_pl_move
@@ -110,18 +130,7 @@ fn board_draw(game: Game*)
         }
     }
 
-    def BUTTON_WIDTH  = 300
-    def BUTTON_HEIGHT = 50
-    def BUTTON_GAP    = 10
-    def BUTTON_TOP    = WINDOW_HEIGHT - BUTTON_HEIGHT - (3 * BUTTON_GAP) - V_GRID_GAP / 2
-    def BUTTON_NEW_GAME_LEFT = (WINDOW_WIDTH - BUTTON_WIDTH*2) / 2 - BUTTON_GAP
-    def BUTTON_EXIT_LEFT     = BUTTON_NEW_GAME_LEFT + BUTTON_WIDTH + 2 * BUTTON_GAP
-    if gui::GuiButton(gui::Rectangle { x: BUTTON_NEW_GAME_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }, "New game") {
-        print "New game\n"
-    }
-    if gui::GuiButton(gui::Rectangle { x: BUTTON_EXIT_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }, "Exit") {
-        print "Exit\n"
-    }
+    board_draw_controls(game)
 }
 
 fn board_handle_click_on_cell_(cell: string) -> bool
