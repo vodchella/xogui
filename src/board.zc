@@ -84,10 +84,10 @@ fn board_draw(game: Game*)
     let color: ray::Color = game_has_message(game) || game.is_over || !game.wait_for_pl_move
         ? INACTIVE_COLOR
         : FG_COLOR
-    ray::SetMouseCursor(game.wait_for_pl_move && !game.is_over
-        ? ray::MOUSE_CURSOR_DEFAULT
-        : ray::MOUSE_CURSOR_NOT_ALLOWED
-    )
+    // ray::SetMouseCursor(game.wait_for_pl_move && !game.is_over
+    //     ? ray::MOUSE_CURSOR_DEFAULT
+    //     : ray::MOUSE_CURSOR_NOT_ALLOWED
+    // )
 
     let text: char[2]
     text[1] = '\0'
