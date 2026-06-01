@@ -136,7 +136,7 @@ fn engine_get_string_response(engine: Engine*,
 {
     match engine_get_raw_response(engine, "{request}\n") {
         Ok(raw_resp) => {
-            let r: String = (String) raw_resp
+            let r: String = (String) raw_resp  // BUG: https://github.com/zenc-lang/zenc/issues/433
             return EngineGetStringResponse::RespOk(r.substring(2, r.length() - 3))
         }
         Err(err) => {

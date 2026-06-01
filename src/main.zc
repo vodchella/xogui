@@ -82,7 +82,7 @@ fn main()
             if !game.is_over && !has_message && game.wait_for_pl_move {
                 match board_handle_click_on_cell() {
                     Some(c) => {
-                        let cell: String = (String) c; // TODO: make PR; wtf with this pattern matching?
+                        let cell: String = (String) c;   // BUG: https://github.com/zenc-lang/zenc/issues/433
                         match engine_cmd_play(&engine, &cell) {
                             EnginePlayResponse::MoveOk => {
                                 let index: int = cell.c_str() |> cell_to_index
