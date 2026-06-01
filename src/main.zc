@@ -1,9 +1,11 @@
 //> link: ${RAYLIB}/lib/libraylib.a -lm
 //> include: ${RAYLIB}/include
+//> cflag: -DRAYGUI_IMPLEMENTATION
 
 
-import "unistd.h"       as u
-import "raylib.h"       as ray
+import "unistd.h"            as u
+import "raylib.h"            as ray
+import "./external/raygui.h" as gui
 import "std/option.zc"
 import "defines.zc"
 import "utils.zc"
@@ -31,6 +33,7 @@ fn main()
 
     ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui 0.0.1 ({engine_name} engine {engine_version})")
     ray::SetTargetFPS(60)
+    gui::GuiSetStyle(gui::DEFAULT, gui::TEXT_SIZE, FONT_SIZE * 1.2)
 
     while !ray::WindowShouldClose() {
         game_clear_message_if_needed(&game)

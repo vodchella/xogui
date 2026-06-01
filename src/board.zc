@@ -1,4 +1,5 @@
-import "raylib.h"       as ray
+import "raylib.h"            as ray
+import "./external/raygui.h" as gui
 import "std/math.zc"
 import "defines.zc"
 import "game.zc"
@@ -107,6 +108,19 @@ fn board_draw(game: Game*)
                 }
             }
         }
+    }
+
+    def BUTTON_WIDTH  = 300
+    def BUTTON_HEIGHT = 50
+    def BUTTON_GAP    = 10
+    def BUTTON_TOP    = WINDOW_HEIGHT - BUTTON_HEIGHT - (3 * BUTTON_GAP) - V_GRID_GAP / 2
+    def BUTTON_NEW_GAME_LEFT = (WINDOW_WIDTH - BUTTON_WIDTH*2) / 2 - BUTTON_GAP
+    def BUTTON_EXIT_LEFT     = BUTTON_NEW_GAME_LEFT + BUTTON_WIDTH + 2 * BUTTON_GAP
+    if gui::GuiButton(gui::Rectangle { x: BUTTON_NEW_GAME_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }, "New game") {
+        print "New game\n"
+    }
+    if gui::GuiButton(gui::Rectangle { x: BUTTON_EXIT_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }, "Exit") {
+        print "Exit\n"
     }
 }
 
