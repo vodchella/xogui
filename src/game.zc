@@ -9,6 +9,7 @@ struct Game {
     wait_for_pl_move:      bool,
     check_for_winner:      bool,
     board:                 byte[BOARD_SIZE],
+    last_played_index:     int,
 }
 
 
@@ -20,6 +21,7 @@ fn game_init() -> Game
         is_over: false,
         wait_for_pl_move: true,
         check_for_winner: false,
+        last_played_index: -1,
     }
     memset(game.board, CELL_EMPTY, BOARD_SIZE - 1)
     return game

@@ -42,6 +42,7 @@ fn main()
                 EngineGenMoveResponse::Move(cc) => {
                     let index: int = cc.c_str() |> cell_to_index
                     game.board[index] = (byte) CELL_O
+                    game.last_played_index = index
                     game.wait_for_pl_move = true
                     game.check_for_winner = true
                 }
@@ -82,11 +83,12 @@ fn main()
         if !game.is_over && !has_message && game.wait_for_pl_move {
             match board_handle_click_on_cell() {
                 Some(c) => {
-                    let cell: String     = (String) c; // TODO: make PR; wtf with this pattern matching?
+                    let cell: String = (String) c; // TODO: make PR; wtf with this pattern matching?
                     match engine_cmd_play(&engine, &cell) {
                         EnginePlayResponse::MoveOk => {
                             let index: int = cell.c_str() |> cell_to_index
                             game.board[index] = (byte) CELL_X
+                            game.last_played_index = index
                             game.wait_for_pl_move = false
                             game.check_for_winner = true
                         }

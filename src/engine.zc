@@ -3,6 +3,7 @@ import "sys/wait.h"
 import "std/result.zc"
 import "std/string.zc"
 
+
 struct Engine {
     pid:  u::pid_t,
     fin:  FILE*,
@@ -72,7 +73,7 @@ fn engine_get_raw_response_(engine:        Engine*,
     while (fgets(line, sizeof(line), engine.fout)) {
         // GTP response ends with empty line
         if (strcmp(line, "\n") == 0) {
-            print "!> {response}"
+            print ":> {response}"
             return !process_is_dead(engine.pid)
         }
         strncat(response, line, response_len - strlen(response) - 1)

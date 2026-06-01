@@ -1,4 +1,5 @@
 import "raylib.h"       as ray
+import "std/math.zc"
 import "defines.zc"
 import "game.zc"
 
@@ -13,6 +14,30 @@ fn board_draw_symbol(sym:    string,
     let text_x    = x + (CELL_SIZE - text_size.x) / 2
     let text_y    = y + (CELL_SIZE - text_size.y) / 2
     ray::DrawTextEx(font, sym, ray::Vector2 { x: text_x, y: text_y }, FONT_SIZE, 1, color)
+}
+
+fn board_draw_symbol_pulse(sym:   string,
+                           x:     int,
+                           y:     int,
+                           color: ray::Color) -> void
+{
+    let font = ray::GetFontDefault()
+    let time = ray::GetTime()
+
+    def PULSE_SCALE_MIN      = 0.9  // Minimal scale of the symbol at the lowest point of the pulse
+    def PULSE_SCALE_RANGE    = 0.5  // Difference between maximum and minimum scale
+    def PULSE_FREQUENCY      = 5.2  // Pulse speed in radians per second
+    def PULSE_SIN_OFFSET     = 1.0  // Sin output offset: transforms [-1; 1] into [0; 2]
+    def PULSE_SIN_NORMALIZER = 2.0  // Sin output divisor: transforms [0; 2] into [0; 1]
+    let normalized_sin = (Math::sin(time * PULSE_FREQUENCY) + PULSE_SIN_OFFSET) / PULSE_SIN_NORMALIZER
+    let scale          = PULSE_SCALE_MIN + PULSE_SCALE_RANGE * normalized_sin
+
+    let font_size = FONT_SIZE * scale
+    let text_size = ray::MeasureTextEx(font, sym, font_size, 1)
+    let text_x    = x + (CELL_SIZE - text_size.x) / 2
+    let text_y    = y + (CELL_SIZE - text_size.y) / 2
+
+    ray::DrawTextEx(font, sym, ray::Vector2 {x: text_x, y: text_y}, font_size, 1, color)
 }
 
 fn board_draw_message(message: string) -> void
@@ -75,7 +100,11 @@ fn board_draw(game: Game*)
                 let px = H_GRID_MARGIN + (CELL_SIZE * x)
                 let pl_color: ray::Color = game.board[index] == CELL_X ? PL_X_COLOR : PL_O_COLOR
                 let pl_sym = game.board[index] == CELL_X ? "X\0" : "O\0"
-                board_draw_symbol(pl_sym, px, py, pl_color)
+                if index == game.last_played_index {
+                    board_draw_symbol_pulse(pl_sym, px, py, pl_color)
+                } else {
+                    board_draw_symbol(pl_sym, px, py, pl_color)
+                }
             }
         }
     }
