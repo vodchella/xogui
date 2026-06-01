@@ -30,7 +30,7 @@ enum EngineGetWinnerResponse {
 }
 
 enum EngineGetStringResponse {
-    Ok(String),
+    RespOk(String),
     EngineError(String),
 }
 
@@ -92,20 +92,6 @@ fn engine_get_raw_response(engine: Engine*,
     return Result<String>::Ok(String::from(response))
 }
 
-fn engine_get_string_response(engine: Engine*,
-                              request: string) -> EngineGetStringResponse
-{
-    match engine_get_raw_response(engine, "{request}\n") {
-        Ok(raw_resp) => {
-            let r: String = (String) raw_resp
-            return EngineGetStringResponse::Ok(r.substring(2, r.length() - 3))
-        }
-        EngineError(err) => {
-            return EngineGetStringResponse::EngineError(err)
-        }
-    }
-}
-
 fn engine_send_command(engine: Engine*,
                        command: string) -> void
 {
@@ -145,15 +131,29 @@ fn engine_convert_getwinner_response(raw_response: String) -> EngineGetWinnerRes
     }
 }
 
+fn engine_get_string_response(engine: Engine*,
+                              request: string) -> EngineGetStringResponse
+{
+    match engine_get_raw_response(engine, "{request}\n") {
+        Ok(raw_resp) => {
+            let r: String = (String) raw_resp
+            return EngineGetStringResponse::RespOk(r.substring(2, r.length() - 3))
+        }
+        Err(err) => {
+            return EngineGetStringResponse::EngineError(String::new(err))
+        }
+    }
+}
+
 fn engine_cmd_play(engine: Engine*,
-                   cell: String*) -> EnginePlayResponse
+                   cell:   String*) -> EnginePlayResponse
 {
     match engine_get_raw_response(engine, "PLAY X {cell.c_str()}\n") {
         Ok(raw_resp) => {
             return engine_convert_play_response(raw_resp)
         }
-        EngineError(err) => {
-            return EnginePlayResponse::EngineError(err)
+        Err(err) => {
+            return EnginePlayResponse::EngineError(String::new(err))
         }
     }
 }
@@ -164,8 +164,8 @@ fn engine_cmd_genmove(engine: Engine*) -> EngineGenMoveResponse
         Ok(raw_resp) => {
             return engine_convert_genmove_response(raw_resp)
         }
-        EngineError(err) => {
-            return EngineGenMoveResponse::EngineError(err)
+        Err(err) => {
+            return EngineGenMoveResponse::EngineError(String::new(err))
         }
     }
 }
@@ -176,8 +176,8 @@ fn engine_cmd_getwinner(engine: Engine*) -> EngineGetWinnerResponse
         Ok(raw_resp) => {
             return engine_convert_getwinner_response(raw_resp)
         }
-        EngineError(err) => {
-            return EngineGetWinnerResponse::EngineError(err)
+        Err(err) => {
+            return EngineGetWinnerResponse::EngineError(String::new(err))
         }
     }
 }

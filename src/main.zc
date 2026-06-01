@@ -21,11 +21,11 @@ fn main()
 
     // Fetch engine name and version
     match engine_cmd_getname(&engine) {
-        Ok(v)            => { engine_name = v }
+        RespOk(v)        => { engine_name = v }
         EngineError(err) => { eprint "Unknown engine name" }
     }
     match engine_cmd_getversion(&engine) {
-        Ok(v)            => { engine_version = v }
+        RespOk(v)        => { engine_version = v }
         EngineError(err) => { eprint "Unknown engine version" }
     }
 
