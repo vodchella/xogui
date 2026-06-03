@@ -59,9 +59,20 @@ jobs:
         run: |
           file xoml
 
-      - name: Build XoGui
+      - name: Build XoGui and create tarball
         run: |
           echo "CC=$(command -v cc)" >> "$GITHUB_ENV"
           make
           strip xogui
-          ls -al
+          TAG="${{ github.ref_name }}"
+          FILENAME="xogui-${TAG}-${{ matrix.target }}.tar.gz"
+          tar -czf "$FILENAME" --transform='s|^|xogui/|' xoml xogui
+          ls -l "$FILENAME"
+
+      - name: Upload assets to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            xogui-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
