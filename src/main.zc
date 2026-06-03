@@ -35,6 +35,11 @@ fn main()
     gui::GuiSetStyle(gui::DEFAULT, gui::TEXT_SIZE, FONT_SIZE * 1.2)
 
     while !game.quit_requested && !ray::WindowShouldClose() {
+        if (game.new_game_requested) {
+            engine_send_command(&engine, "CLEAN_BOARD\n")
+            game = game_init()
+        }
+
         game_clear_message_if_needed(&game)
         let has_message: bool = game_has_message(&game)
 

@@ -71,10 +71,9 @@ fn board_draw_controls(game: Game*)
     let new_game_button_rect = gui::Rectangle { x: BUTTON_NEW_GAME_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }
     let exit_button_rect     = gui::Rectangle { x: BUTTON_EXIT_LEFT, y: BUTTON_TOP, width: BUTTON_WIDTH, height: BUTTON_HEIGHT }
     if gui::GuiButton(new_game_button_rect, "New game") {
-        print "New game\n"
+        game.new_game_requested = true
     }
     if gui::GuiButton(exit_button_rect, "Exit") {
-        print "Exit\n"
         game.quit_requested = true
     }
 }
