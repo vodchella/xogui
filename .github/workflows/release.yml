@@ -53,7 +53,7 @@ jobs:
       - name: Install XOml v0.2.3
         run: |
           wget -q https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-x86_64-linux.tar.gz
-          tar -xzf xoml-v0.2.3-arm64-linux.tar.gz
+          tar -xzf xoml-v0.2.3-x86_64-linux.tar.gz
 
       - name: Check XOml
         run: |
