@@ -34,7 +34,8 @@ jobs:
 
       - name: Download and build Zen C
         run: |
-          git clone https://github.com/zen-lang/zenc
+          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          git clone https://github.com/zenc-lang/zenc.git
           cd zenc
           git checkout a3a4698dc78fce99acbde01eab640e0753a94116
           make clean
