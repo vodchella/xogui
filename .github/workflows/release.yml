@@ -34,7 +34,7 @@ jobs:
 
       - name: Download and build Zen C
         run: |
-          git clone https://github.com/zen-lang/zenc.git
+          git clone https://github.com/zen-lang/zenc
           cd zenc
           git checkout a3a4698dc78fce99acbde01eab640e0753a94116
           make clean
