@@ -1,5 +1,5 @@
-import "raylib.h"            as ray
-import "./external/raygui.h" as gui
+import "raylib.h"      as ray
+import "raygui_impl.h" as gui
 import "std/math.zc"
 import "defines.zc"
 import "game.zc"

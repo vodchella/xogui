@@ -2,9 +2,9 @@
 //> include: ${RAYLIB}/include
 
 
-import "unistd.h"            as u
-import "raylib.h"            as ray
-import "./external/raygui.h" as gui
+import "unistd.h"      as u
+import "raylib.h"      as ray
+import "raygui_impl.h" as gui
 import "std/option.zc"
 import "defines.zc"
 import "utils.zc"
