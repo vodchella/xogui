@@ -47,7 +47,6 @@ fn main()
         if !has_message && game.check_for_winner {
             game.check_for_winner = false
             game.wait_for_pl_move = !game.wait_for_pl_move
-            // TODO: Check for the draw, XOml doesn't support it for now
             match engine_cmd_getwinner(&engine) {
                 EngineGetWinnerResponse::Winner(w) => {
                     game_set_message(
@@ -56,6 +55,10 @@ fn main()
                             ? String::new("Opponent wins!\n")
                             : String::new("You win!\n")
                     )
+                    game.is_over = true
+                }
+                EngineGetWinnerResponse::GameDraw => {
+                    game_set_message(&game, String::new(DRAW_MSG))
                     game.is_over = true
                 }
                 EngineGetWinnerResponse::EngineError(err) => {
@@ -75,7 +78,7 @@ fn main()
                         game.check_for_winner = true
                     }
                     EngineGenMoveResponse::Draw => {
-                        game_set_message(&game, String::new("This is draw!\n"))
+                        game_set_message(&game, String::new(DRAW_MSG))
                         game.is_over = true
                     }
                     EngineGenMoveResponse::EngineError(err) => {
