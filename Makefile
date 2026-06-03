@@ -1,10 +1,10 @@
 .PHONY: build run clear
 
 build:
-	zc build src/main.zc -o main --cc $(CC)
+	zc build src/main.zc -o xogui --cc $(CC)
 
 run: build
-	./main
+	./xogui
 
 clean:
 	rm -f main xoml.log
