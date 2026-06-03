@@ -31,3 +31,19 @@ jobs:
         run: |
           ls -la "$RAYLIB/include"
           ls -la "$RAYLIB/lib"
+
+      - name: Download and build Zen C
+        run: |
+          git clone https://github.com/zen-lang/zenc.git
+          cd zenc
+          git checkout a3a4698dc78fce99acbde01eab640e0753a94116
+          make clean
+          make ZC_HAS_JIT=0
+          make install PREFIX="$GITHUB_WORKSPACE/zenc-install"
+          echo "ZC_ROOT=$GITHUB_WORKSPACE/zenc-install/share/zenc" >> "$GITHUB_ENV"
+          echo "$GITHUB_WORKSPACE/zenc-install/bin" >> "$GITHUB_PATH"
+
+      - name: Check Zen C
+        run: |
+          ls -la "$ZC_ROOT"
+          zc --version
