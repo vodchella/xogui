@@ -7,4 +7,4 @@ run: build
 	./xogui
 
 clean:
-	rm -f main xoml.log
+	rm -f xogui xoml.log
