@@ -30,7 +30,7 @@ fn main()
         EngineError(err) => { eprint "Unknown engine version" }
     }
 
-    ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui 0.0.1 ({engine_name} engine {engine_version})")
+    ray::InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "XoGui 0.0.2 ({engine_name} engine {engine_version})")
     ray::SetTargetFPS(60)
     gui::GuiSetStyle(gui::DEFAULT, gui::TEXT_SIZE, FONT_SIZE * 1.2)
 
