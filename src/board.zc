@@ -5,6 +5,18 @@ import "defines.zc"
 import "game.zc"
 
 
+fn pulse_scale() -> f32
+{
+    def PULSE_SCALE_MIN      = 0.9  // Minimal scale of the symbol at the lowest point of the pulse
+    def PULSE_SCALE_RANGE    = 0.5  // Difference between maximum and minimum scale
+    def PULSE_FREQUENCY      = 5.2  // Pulse speed in radians per second
+    def PULSE_SIN_OFFSET     = 1.0  // Sin output offset: transforms [-1; 1] into [0; 2]
+    def PULSE_SIN_NORMALIZER = 2.0  // Sin output divisor: transforms [0; 2] into [0; 1]
+    let time = ray::GetTime()
+    let normalized_sin = (Math::sin(time * PULSE_FREQUENCY) + PULSE_SIN_OFFSET) / PULSE_SIN_NORMALIZER
+    return PULSE_SCALE_MIN + PULSE_SCALE_RANGE * normalized_sin
+}
+
 fn board_draw_symbol(sym:    string,
                      x:      int,
                      y:      int,
@@ -22,16 +34,8 @@ fn board_draw_symbol_pulse(sym:   string,
                            y:     int,
                            color: ray::Color) -> void
 {
-    let font = ray::GetFontDefault()
-    let time = ray::GetTime()
-
-    def PULSE_SCALE_MIN      = 0.9  // Minimal scale of the symbol at the lowest point of the pulse
-    def PULSE_SCALE_RANGE    = 0.5  // Difference between maximum and minimum scale
-    def PULSE_FREQUENCY      = 5.2  // Pulse speed in radians per second
-    def PULSE_SIN_OFFSET     = 1.0  // Sin output offset: transforms [-1; 1] into [0; 2]
-    def PULSE_SIN_NORMALIZER = 2.0  // Sin output divisor: transforms [0; 2] into [0; 1]
-    let normalized_sin = (Math::sin(time * PULSE_FREQUENCY) + PULSE_SIN_OFFSET) / PULSE_SIN_NORMALIZER
-    let scale          = PULSE_SCALE_MIN + PULSE_SCALE_RANGE * normalized_sin
+    let font  = ray::GetFontDefault()
+    let scale = pulse_scale()
 
     let font_size = FONT_SIZE * scale
     let text_size = ray::MeasureTextEx(font, sym, font_size, 1)
@@ -40,6 +44,50 @@ fn board_draw_symbol_pulse(sym:   string,
 
     ray::DrawTextEx(font, sym, ray::Vector2 {x: text_x, y: text_y}, font_size, 1, color)
 }
+
+fn board_draw_x(x:      int,
+                y:      int,
+                color:  ray::Color,
+                pulse:  bool) -> void
+{
+    def PADDING   = CELL_SIZE * 0.20
+    def THICKNESS = CELL_SIZE * 0.08
+
+    let scale = pulse ? pulse_scale() : 1.0
+    let half  = CELL_SIZE / 2
+    let size  = (CELL_SIZE - 2 * PADDING) * scale / 2
+    let cx    = x + half
+    let cy    = y + half
+
+    ray::DrawLineEx(
+        ray::Vector2 { x: cx - size, y: cy - size },
+        ray::Vector2 { x: cx + size, y: cy + size },
+        THICKNESS,
+        color
+    )
+    ray::DrawLineEx(
+        ray::Vector2 { x: cx + size, y: cy - size },
+        ray::Vector2 { x: cx - size, y: cy + size },
+        THICKNESS,
+        color
+    )
+}
+
+fn board_draw_o(x:      int,
+                y:      int,
+                color:  ray::Color,
+                pulse:  bool) -> void
+{
+    def PADDING    = CELL_SIZE * 0.20
+    def THICKNESS  = CELL_SIZE * 0.08
+    def O_SEGMENTS = 64
+    let scale  = pulse ? pulse_scale() : 1.0
+    let center = ray::Vector2 { x: x + CELL_SIZE / 2, y: y + CELL_SIZE / 2 }
+    let radius_outer = ((CELL_SIZE / 2) - PADDING) * scale
+    let radius_inner = radius_outer - THICKNESS
+    ray::DrawRing(center, radius_inner, radius_outer, 0, 360, O_SEGMENTS, color)
+}
+
 
 fn board_draw_message(message: string) -> void
 {
@@ -119,11 +167,11 @@ fn board_draw(game: Game*)
                 let py = V_GRID_MARGIN + (CELL_SIZE * (BOARD_SIDE - y - 1))
                 let px = H_GRID_MARGIN + (CELL_SIZE * x)
                 let pl_color: ray::Color = game.board[index] == CELL_X ? PL_X_COLOR : PL_O_COLOR
-                let pl_sym = game.board[index] == CELL_X ? "X\0" : "O\0"
-                if index == game.last_played_index {
-                    board_draw_symbol_pulse(pl_sym, px, py, pl_color)
+                let pulse: bool          = index == game.last_played_index
+                if game.board[index] == CELL_X {
+                    board_draw_x(px, py, pl_color, pulse)
                 } else {
-                    board_draw_symbol(pl_sym, px, py, pl_color)
+                    board_draw_o(px, py, pl_color, pulse)
                 }
             }
         }
