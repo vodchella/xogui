@@ -13,6 +13,7 @@ struct Engine {
     request:  char[1024],
     response: char[1024],
     response_is_ready: bool,
+    stop_requested: bool,
 }
 
 enum EnginePlayResponse {
@@ -57,6 +58,14 @@ fn process_is_dead(pid: u::pid_t) -> bool
     return false
 }
 
+fn engine_set_request(engine: Engine*,
+                      request: string) -> void
+{
+    let req_len: size_t = strcspn(request, "\n") + 1
+    memset(engine.request, '\0', 1024)
+    strncpy(engine.request, request, req_len)
+}
+
 fn engine_get_raw_response_(engine:  Engine*) -> bool
 {
     if process_is_dead(engine.pid) {
@@ -65,7 +74,6 @@ fn engine_get_raw_response_(engine:  Engine*) -> bool
 
     let line: char[1024]
     engine.response[0] = '\0'
-    engine.response_is_ready = false
 
     print "?> {engine.request}"
     fprintf(engine.fin, "%s", engine.request)
@@ -88,19 +96,25 @@ fn engine_get_raw_response_(engine:  Engine*) -> bool
     return false
 }
 
-fn engine_get_raw_response(engine: Engine*,
+fn engine_get_raw_response(engine:  Engine*,
                            request: string) -> Result<String>
 {
-    let req_len: size_t = strcspn(request, "\n") + 1
-    memset(engine.request, '\0', 1024)
-    strncpy(engine.request, request, req_len)
+    engine_set_request(engine, request)
     if !engine_get_raw_response_(engine) {
         return Result<String>::Err("The engine has terminated\n")
     }
     return Result<String>::Ok(String::from(engine.response))
 }
 
-fn engine_send_command(engine: Engine*,
+fn engine_send_async_request(engine:  Engine*,
+                             request: string) -> void
+{
+    engine_set_request(engine, request)
+    engine.response_is_ready = false
+    s::sem_post(&engine.sem)
+}
+
+fn engine_send_command(engine:  Engine*,
                        command: string) -> void
 {
     engine_get_raw_response(engine, command)
@@ -180,6 +194,16 @@ fn engine_cmd_genmove(engine: Engine*) -> EngineGenMoveResponse
     }
 }
 
+fn engine_async_cmd_genmove(engine: Engine*) -> void
+{
+    engine_send_async_request(engine, "GEN_MOVE O\n")
+}
+
+fn engine_async_cmd_genmove_result(engine: Engine*) -> EngineGenMoveResponse
+{
+    return engine_convert_genmove_response(String::new(engine.response))
+}
+
 fn engine_cmd_getwinner(engine: Engine*) -> EngineGetWinnerResponse
 {
     match engine_get_raw_response(engine, "WINNER\n") {
@@ -236,7 +260,7 @@ fn engine_start() -> Engine
     child_in  = fdopen(to_cat[1], "w")
     child_out = fdopen(from_cat[0], "r")
 
-    let eng: Engine = Engine { pid: pid, fin: child_in, fout: child_out }
+    let eng: Engine = Engine { pid: pid, fin: child_in, fout: child_out, stop_requested: false }
     sem_init(&eng.sem, 0, 0)
     return eng
 }
@@ -244,10 +268,13 @@ fn engine_start() -> Engine
 fn engine_loop(arg: void*) -> void*
 {
     let engine: Engine* = (Engine*) arg
-    print "Engine loop started!\n"
-    while true {
+    while !engine.stop_requested {
         s::sem_wait(&engine.sem)
-        print "Semaphore is here!!!\n"
+        if engine.stop_requested {
+            break
+        }
+        engine_get_raw_response_(engine)
+        engine.response_is_ready = true
     }
     return NULL;
 }

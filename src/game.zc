@@ -9,6 +9,7 @@ struct Game {
     quit_requested:        bool,
     new_game_requested:    bool,
     wait_for_pl_move:      bool,
+    wait_for_async_resp:   bool,
     check_for_winner:      bool,
     board:                 byte[BOARD_SIZE],
     last_played_index:     int,
@@ -24,6 +25,7 @@ fn game_init() -> Game
         quit_requested: false,
         new_game_requested: false,
         wait_for_pl_move: true,
+        wait_for_async_resp: false,
         check_for_winner: false,
         last_played_index: -1,
     }

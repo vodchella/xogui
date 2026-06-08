@@ -48,10 +48,31 @@ fn main()
         game_clear_message_if_needed(&game)
         let has_message: bool = game_has_message(&game)
 
+        // Check for async response and make opponent's move
+        if game.wait_for_async_resp && engine.response_is_ready {
+            game.wait_for_async_resp = false
+            match engine_async_cmd_genmove_result(&engine) {
+                EngineGenMoveResponse::Move(cc) => {
+                    let index: int = cc.c_str() |> cell_to_index
+                    game.board[index] = (byte) CELL_O
+                    game.last_played_index = index
+                    game.check_for_winner = true
+                }
+                EngineGenMoveResponse::Draw => {
+                    game_set_message(&game, String::new(DRAW_MSG))
+                    game.is_over = true
+                }
+                EngineGenMoveResponse::EngineError(err) => {
+                    game_set_message(&game, err)
+                    game.is_over = true
+                }
+            }
+        }
+
         // Check for winner
         if !has_message && game.check_for_winner {
             game.check_for_winner = false
-            game.wait_for_pl_move = !game.wait_for_pl_move
+            game.wait_for_pl_move = !game.wait_for_pl_move  // MUST be changed only here
             match engine_cmd_getwinner(&engine) {
                 EngineGetWinnerResponse::Winner(w) => {
                     game_set_message(
@@ -73,24 +94,10 @@ fn main()
                 _ => {}
             }
         } else {
-            // Make opponent's move
-            if !game.is_over && !has_message && !game.wait_for_pl_move {
-                match engine_cmd_genmove(&engine) {
-                    EngineGenMoveResponse::Move(cc) => {
-                        let index: int = cc.c_str() |> cell_to_index
-                        game.board[index] = (byte) CELL_O
-                        game.last_played_index = index
-                        game.check_for_winner = true
-                    }
-                    EngineGenMoveResponse::Draw => {
-                        game_set_message(&game, String::new(DRAW_MSG))
-                        game.is_over = true
-                    }
-                    EngineGenMoveResponse::EngineError(err) => {
-                        game_set_message(&game, err)
-                        game.is_over = true
-                    }
-                }
+            // Async request for opponent's move
+            unless game.is_over || has_message || game.wait_for_pl_move || game.wait_for_async_resp {
+                game.wait_for_async_resp = true
+                engine_async_cmd_genmove(&engine)
             }
 
             // Handle player's move
@@ -104,7 +111,6 @@ fn main()
                                 game.board[index] = (byte) CELL_X
                                 game.last_played_index = index
                                 game.check_for_winner = true
-                                s::sem_post(&engine.sem)
                             }
                             EnginePlayResponse::Unknown(msg) => {
                                 game_set_message(&game, msg)
@@ -133,9 +139,10 @@ fn main()
         ray::EndDrawing()
     }
 
+    engine.stop_requested = true
     engine_send_command(&engine, "QUIT\n")
     ray::CloseWindow()
-    // t::pthread_join(thread, NULL)
+    s::sem_post(&engine.sem)
     s::sem_destroy(&engine.sem);
     fclose(engine.fin)
     fclose(engine.fout)
