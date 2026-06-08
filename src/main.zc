@@ -2,6 +2,8 @@
 //> include: ${RAYLIB}/include
 
 
+import "pthread.h"     as t
+import "semaphore.h"   as s
 import "unistd.h"      as u
 import "raylib.h"      as ray
 import "raygui_impl.h" as gui
@@ -15,7 +17,10 @@ import "engine.zc"
 
 fn main()
 {
-    let engine         = engine_start()
+    let engine = engine_start()
+    let thread: t::pthread_t;
+    t::pthread_create(&thread, NULL, engine_loop, &engine)
+
     let game           = game_init()
     let engine_name    = String::new("?")
     let engine_version = String::new("?")
@@ -99,6 +104,7 @@ fn main()
                                 game.board[index] = (byte) CELL_X
                                 game.last_played_index = index
                                 game.check_for_winner = true
+                                s::sem_post(&engine.sem)
                             }
                             EnginePlayResponse::Unknown(msg) => {
                                 game_set_message(&game, msg)
@@ -129,6 +135,8 @@ fn main()
 
     engine_send_command(&engine, "QUIT\n")
     ray::CloseWindow()
+    // t::pthread_join(thread, NULL)
+    s::sem_destroy(&engine.sem);
     fclose(engine.fin)
     fclose(engine.fout)
     wait(NULL)

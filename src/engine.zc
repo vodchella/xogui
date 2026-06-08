@@ -1,4 +1,5 @@
-import "unistd.h" as u
+import "semaphore.h" as s
+import "unistd.h"    as u
 import "sys/wait.h"
 import "std/result.zc"
 import "std/string.zc"
@@ -8,6 +9,7 @@ struct Engine {
     pid:  u::pid_t,
     fin:  FILE*,
     fout: FILE*,
+    sem:  s::sem_t,
     response: char[1024],
     response_is_ready: bool,
 }
@@ -231,6 +233,19 @@ fn engine_start() -> Engine
     child_in  = fdopen(to_cat[1], "w")
     child_out = fdopen(from_cat[0], "r")
 
-    return Engine { pid: pid, fin: child_in, fout: child_out }
+    let eng: Engine = Engine { pid: pid, fin: child_in, fout: child_out }
+    sem_init(&eng.sem, 0, 0)
+    return eng
+}
+
+fn engine_loop(arg: void*) -> void*
+{
+    let engine: Engine* = (Engine*) arg
+    print "Engine loop started!\n"
+    while true {
+        s::sem_wait(&engine.sem)
+        print "Semaphore is here!!!\n"
+    }
+    return NULL;
 }
 
