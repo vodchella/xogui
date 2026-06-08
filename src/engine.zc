@@ -8,6 +8,8 @@ struct Engine {
     pid:  u::pid_t,
     fin:  FILE*,
     fout: FILE*,
+    response: char[1024],
+    response_is_ready: bool,
 }
 
 enum EnginePlayResponse {
@@ -52,17 +54,17 @@ fn process_is_dead(pid: u::pid_t) -> bool
     return false
 }
 
-fn engine_get_raw_response_(engine:        Engine*,
-                            request:       string,
-                            response:      string,
-                            response_len:  int) -> bool
+fn engine_get_raw_response_(engine:  Engine*,
+                            request: string) -> bool
 {
     if process_is_dead(engine.pid) {
         return false
     }
 
     let line: char[1024]
-    response[0] = '\0'
+    engine.response[0] = '\0'
+    engine.response_is_ready = false
+
     print "?> {request}"
     fprintf(engine.fin, "%s", request)
     fflush(engine.fin)
@@ -74,10 +76,11 @@ fn engine_get_raw_response_(engine:        Engine*,
     while (fgets(line, sizeof(line), engine.fout)) {
         // GTP response ends with empty line
         if (strcmp(line, "\n") == 0) {
-            print ":> {response}"
+            engine.response_is_ready = true
+            print ":> {engine.response}"
             return !process_is_dead(engine.pid)
         }
-        strncat(response, line, response_len - strlen(response) - 1)
+        strncat(engine.response, line, 1024 - strlen(engine.response) - 1)
     }
 
     return false
@@ -86,11 +89,10 @@ fn engine_get_raw_response_(engine:        Engine*,
 fn engine_get_raw_response(engine: Engine*,
                            request: string) -> Result<String>
 {
-    let response: char[1024]
-    if !engine_get_raw_response_(engine, request, response, sizeof(response)) {
+    if !engine_get_raw_response_(engine, request) {
         return Result<String>::Err("The engine has terminated\n")
     }
-    return Result<String>::Ok(String::from(response))
+    return Result<String>::Ok(String::from(engine.response))
 }
 
 fn engine_send_command(engine: Engine*,
