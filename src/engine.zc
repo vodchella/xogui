@@ -10,6 +10,7 @@ struct Engine {
     fin:  FILE*,
     fout: FILE*,
     sem:  s::sem_t,
+    request:  char[1024],
     response: char[1024],
     response_is_ready: bool,
 }
@@ -56,8 +57,7 @@ fn process_is_dead(pid: u::pid_t) -> bool
     return false
 }
 
-fn engine_get_raw_response_(engine:  Engine*,
-                            request: string) -> bool
+fn engine_get_raw_response_(engine:  Engine*) -> bool
 {
     if process_is_dead(engine.pid) {
         return false
@@ -67,8 +67,8 @@ fn engine_get_raw_response_(engine:  Engine*,
     engine.response[0] = '\0'
     engine.response_is_ready = false
 
-    print "?> {request}"
-    fprintf(engine.fin, "%s", request)
+    print "?> {engine.request}"
+    fprintf(engine.fin, "%s", engine.request)
     fflush(engine.fin)
 
     if process_is_dead(engine.pid) {
@@ -91,7 +91,10 @@ fn engine_get_raw_response_(engine:  Engine*,
 fn engine_get_raw_response(engine: Engine*,
                            request: string) -> Result<String>
 {
-    if !engine_get_raw_response_(engine, request) {
+    let req_len: size_t = strcspn(request, "\n") + 1
+    memset(engine.request, '\0', 1024)
+    strncpy(engine.request, request, req_len)
+    if !engine_get_raw_response_(engine) {
         return Result<String>::Err("The engine has terminated\n")
     }
     return Result<String>::Ok(String::from(engine.response))
