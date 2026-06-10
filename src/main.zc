@@ -1,4 +1,4 @@
-//> link: ${RAYLIB}/lib/libraylib.a -lm
+//> link: ${RAYLIB}/lib/libraylib.a -lm -lX11
 //> include: ${RAYLIB}/include
 
 
