@@ -16,6 +16,14 @@ jobs:
         include:
           - runs-on: ubuntu-latest
             target: x86_64-linux
+            raylib_url: https://github.com/raysan5/raylib/releases/download/6.0/raylib-6.0_linux_amd64.tar.gz
+            raylib_dir: raylib-6.0_linux_amd64
+            xoml_url: https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-x86_64-linux.tar.gz
+          - runs-on: ubuntu-24.04-arm
+            target: arm64-linux
+            raylib_url: https://github.com/raysan5/raylib/releases/download/6.0/raylib-6.0_linux_arm64.tar.gz
+            raylib_dir: raylib-6.0_linux_arm64
+            xoml_url: https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-arm64-linux.tar.gz
 
     steps:
       - name: Checkout
@@ -23,9 +31,9 @@ jobs:
 
       - name: Install Raylib v6.0
         run: |
-          wget -q https://github.com/raysan5/raylib/releases/download/6.0/raylib-6.0_linux_amd64.tar.gz
-          tar -xzf raylib-6.0_linux_amd64.tar.gz
-          echo "RAYLIB=$PWD/raylib-6.0_linux_amd64" >> $GITHUB_ENV
+          wget -q "${{ matrix.raylib_url }}"
+          tar -xzf "$(basename "${{ matrix.raylib_url }}")"
+          echo "RAYLIB=$PWD/${{ matrix.raylib_dir }}" >> "$GITHUB_ENV"
 
       - name: Check Raylib
         run: |
@@ -52,8 +60,8 @@ jobs:
 
       - name: Install XOml v0.2.3
         run: |
-          wget -q https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-x86_64-linux.tar.gz
-          tar -xzf xoml-v0.2.3-x86_64-linux.tar.gz
+          wget -q "${{ matrix.xoml_url }}"
+          tar -xzf "$(basename "${{ matrix.xoml_url }}")"
 
       - name: Check XOml
         run: |
