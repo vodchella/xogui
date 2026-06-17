@@ -1,0 +1,6 @@
+.build/
+.direnv/
+.envrc.local
+xogui
+xoml
+xoml.log
