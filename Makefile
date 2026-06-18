@@ -1,7 +1,7 @@
 .PHONY: build run clear
 
 BIN        := .build/xogui
-ODIN_FLAGS := -out:$(BIN) -extra-linker-flags:"-static"
+ODIN_FLAGS := -out:$(BIN) -extra-linker-flags:"-static" -debug
 
 build:
 	mkdir -p .build
