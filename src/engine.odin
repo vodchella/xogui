@@ -1,8 +1,8 @@
 package xogui
 
 import "core:fmt"
-import "core:os"
 import "core:mem"
+import "core:os"
 import "core:strings"
 
 
@@ -50,7 +50,7 @@ engine_set_request :: proc(engine:  ^Engine,
 
 engine_get_response :: proc(engine: ^Engine)
 {
-    fmt.println(">", string(engine.request[:]))
+    fmt.print(">", string(engine.request[:]))
     os.write_string(engine.stdin, engine.request)
     mem.zero(&engine.response, 1024)
     n, err := os.read(engine.stdout, engine.response[:])
