@@ -3,14 +3,16 @@ package xogui
 import "core:fmt"
 import "core:os"
 import "core:mem"
+import "core:strings"
 
 
 Engine :: struct {
-    process:  os.Process,
-    stdin:    ^os.File,
-    stdout:   ^os.File,
-    request:  string,
-    response: [1024]u8,
+    process:           os.Process,
+    stdin:             ^os.File,
+    stdout:            ^os.File,
+    request:           string,
+    response:          [1024]u8,
+    response_len:      int,
     response_is_ready: bool,
 }
 
@@ -31,6 +33,7 @@ engine_start :: proc() -> (engine: Engine, err: os.Error)
     })
     os.close(stdin_r)
     os.close(stdout_w)
+
     if err != nil {
         return Engine{}, err
     }
@@ -41,6 +44,7 @@ engine_set_request :: proc(engine:  ^Engine,
                            request: string)
 {
     engine.response_is_ready = false
+    engine.response_len = 0
     engine.request = request
 }
 
@@ -49,10 +53,13 @@ engine_get_response :: proc(engine: ^Engine)
     fmt.println(">", string(engine.request[:]))
     os.write_string(engine.stdin, engine.request)
     mem.zero(&engine.response, 1024)
-    _, err := os.read(engine.stdout, engine.response[:])
+    n, err := os.read(engine.stdout, engine.response[:])
     engine.response_is_ready = true
+    engine.response_len = n
     if err != nil {
         fmt.println("engine response read error:", err)
+    } else {
+        fmt.print(string(engine.response[:]))
     }
 }
 
@@ -63,15 +70,20 @@ engine_get_sync_response :: proc(engine:  ^Engine,
     engine_get_response(engine)
 }
 
+engine_get_response_string :: proc(engine: ^Engine) -> string
+{
+    return strings.clone(string(engine.response[2:engine.response_len-2]))
+}
+
 engine_cmd_name :: proc(engine: ^Engine) -> string
 {
     engine_get_sync_response(engine, "name\n")
-    return string(engine.response[:])
+    return engine_get_response_string(engine)
 }
 
 engine_cmd_version :: proc(engine: ^Engine) -> string
 {
     engine_get_sync_response(engine, "version\n")
-    return string(engine.response[:])
+    return engine_get_response_string(engine)
 }
 
