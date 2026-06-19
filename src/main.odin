@@ -31,7 +31,7 @@ main :: proc()
         switch game.state {
         case .New:
             engine_cmd_cleanboard(&engine)
-            game = game_init() //TODO: memory leak?
+            game = game_init()
         case .WaitForPlayerMove:
             if !game_has_message(&game) {
                 cell, clicked := board_handle_click_on_cell()
