@@ -46,6 +46,7 @@ jobs:
           wget -q "${{ matrix.odin_url }}"
           tar -xzf "$(basename "${{ matrix.odin_url }}")"
           echo "$PWD/${{ matrix.odin_dir }}" >> "$GITHUB_PATH"
+          ls -al
 
       - name: Check Odin
         run: |
