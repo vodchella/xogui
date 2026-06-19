@@ -1,6 +1,7 @@
 .build/
 .direnv/
 .envrc.local
+.nvim.lua
 xogui
 xoml
 xoml.log
