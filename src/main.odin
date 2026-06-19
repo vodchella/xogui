@@ -23,8 +23,12 @@ main :: proc()
     rl.SetTargetFPS(60)
     rl.GuiSetStyle(rl.GuiControl.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_SIZE), FONT_SIZE * 1.2)
 
+    game_loop:
     for !rl.WindowShouldClose() {
         switch game.state {
+        case .New:
+            engine_cmd_cleanboard(&engine)
+            game = game_init()
         case .WaitForPlayerMove:
             cell, clicked := board_handle_click_on_cell()
             defer delete(cell)
@@ -41,6 +45,8 @@ main :: proc()
         case .EngineMoveReady:
         case .CheckForWinner:
         case .Over:
+        case .Quit:
+            break game_loop
         }
 
         rl.BeginDrawing()
@@ -49,6 +55,7 @@ main :: proc()
         rl.EndDrawing()
     }
 
+    engine_cmd_quit(&engine)
     rl.CloseWindow()
     os.close(engine.stdin)
     os.close(engine.stdout)

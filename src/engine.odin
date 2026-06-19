@@ -91,6 +91,16 @@ engine_cmd_version :: proc(engine: ^Engine) -> (result: string)
     return
 }
 
+engine_cmd_cleanboard :: proc(engine: ^Engine)
+{
+    engine_get_sync_response(engine, "clean_board\n")
+}
+
+engine_cmd_quit :: proc(engine: ^Engine)
+{
+    engine_get_sync_response(engine, "quit\n")
+}
+
 engine_cmd_play :: proc(engine: ^Engine,
                         cell:   string) -> (err: string, is_ok: bool)
 {

@@ -125,11 +125,11 @@ board_draw_controls :: proc(game: ^Game)
     exit_button_rect     := rl.Rectangle{BUTTON_EXIT_LEFT, BUTTON_TOP, BUTTON_WIDTH, BUTTON_HEIGHT}
 
     if rl.GuiButton(new_game_button_rect, "New game") {
-        // game.new_game_requested = true
+        game.state = .New
     }
 
     if rl.GuiButton(exit_button_rect, "Exit") {
-        // game.quit_requested = true
+        game.state = .Quit
     }
 }
 

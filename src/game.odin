@@ -10,11 +10,13 @@ Cell :: enum u8 {
 }
 
 Game_State :: enum u8 {
+    New,
     WaitForPlayerMove,
     WaitForEngineMove,
     EngineMoveReady,
     CheckForWinner,
     Over,
+    Quit,
 }
 
 Game :: struct {
