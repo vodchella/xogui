@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:mem"
 import "core:os"
 import "core:strings"
+import "core:sync"
 
 
 Engine :: struct {
@@ -14,6 +15,8 @@ Engine :: struct {
     response:          [1024]u8,
     response_len:      int,
     response_is_ready: bool,
+    sem:               sync.Sema,
+    stop_requested:    bool,
 }
 
 
@@ -38,6 +41,21 @@ engine_start :: proc() -> (engine: Engine, err: os.Error)
         return Engine{}, err
     }
     return engine, nil
+}
+
+engine_loop :: proc(arg: rawptr)
+{
+    engine := cast(^Engine)arg
+    for !engine.stop_requested {
+        sync.sema_wait(&engine.sem)
+
+        if engine.stop_requested {
+            break
+        }
+
+        engine_get_response(engine)
+        engine.response_is_ready = true
+    }
 }
 
 engine_set_request :: proc(engine:  ^Engine,
@@ -128,4 +146,10 @@ engine_cmd_genmove :: proc(engine: ^Engine) -> int
     resp, _ := engine_get_response_result(engine)
     defer delete(resp)
     return cell_to_index(resp)
+}
+
+engine_async_cmd_genmove :: proc(engine: ^Engine)
+{
+    engine_set_request(engine, "gen_move O\n")
+    sync.sema_post(&engine.sem)
 }

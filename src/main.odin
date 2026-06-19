@@ -3,6 +3,8 @@ package xogui
 import "core:fmt"
 import "core:os"
 import "core:strings"
+import "core:sync"
+import "core:thread"
 import rl "vendor:raylib"
 
 
@@ -13,10 +15,11 @@ main :: proc()
         fmt.println("engine start error:", err)
         return
     }
+    thread.create_and_start_with_data(&engine, engine_loop)
 
     name    := engine_cmd_name(&engine)
     version := engine_cmd_version(&engine)
-    title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.2 (%s engine %s)", name, version))
+    title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.3 (%s engine %s)", name, version))
     game    := game_init()
 
     rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, title)
@@ -44,15 +47,21 @@ main :: proc()
                     }
                 }
             }
+        case .RequestForEngineMove:
+            engine_async_cmd_genmove(&engine)
+            game.state = .WaitForEngineMove
         case .WaitForEngineMove:
-            index := engine_cmd_genmove(&engine)
-            game_make_move(&game, index, .O)
-        case .EngineMoveReady:
+            if (engine.response_is_ready) {
+                move, _ := engine_get_response_result(&engine)
+                defer delete(move)
+                index := cell_to_index(move)
+                game_make_move(&game, index, .O)
+            }
         case .CheckForWinner:
             winner := engine_cmd_getwinner(&engine)
             if winner == .None {
                 switch game.last_player {
-                case .X:     game.state = .WaitForEngineMove
+                case .X:     game.state = .RequestForEngineMove
                 case .O:     game.state = .WaitForPlayerMove
                 case .Empty: fmt.panicf("UNREACHABLE\n")
                 }
@@ -77,8 +86,10 @@ main :: proc()
         rl.EndDrawing()
     }
 
+    engine.stop_requested = true
     engine_cmd_quit(&engine)
     rl.CloseWindow()
+    sync.sema_post(&engine.sem)
     os.close(engine.stdin)
     os.close(engine.stdout)
 }

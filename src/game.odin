@@ -20,8 +20,8 @@ Winner :: enum {
 Game_State :: enum u8 {
     New,
     WaitForPlayerMove,
+    RequestForEngineMove,
     WaitForEngineMove,
-    EngineMoveReady,
     CheckForWinner,
     Over,
     Quit,
