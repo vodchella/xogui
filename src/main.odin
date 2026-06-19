@@ -17,6 +17,7 @@ main :: proc()
     name    := engine_cmd_name(&engine)
     version := engine_cmd_version(&engine)
     title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.2 (%s engine %s)", name, version))
+    game    := game_init()
 
     rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, title)
     rl.SetTargetFPS(60)
@@ -25,6 +26,7 @@ main :: proc()
     for !rl.WindowShouldClose() {
         rl.BeginDrawing()
         rl.ClearBackground(BG_COLOR)
+        board_draw(&game)
         rl.EndDrawing()
     }
 
