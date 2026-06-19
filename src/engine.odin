@@ -70,20 +70,24 @@ engine_get_sync_response :: proc(engine:  ^Engine,
     engine_get_response(engine)
 }
 
-engine_get_response_string :: proc(engine: ^Engine) -> string
+engine_get_response_result :: proc(engine: ^Engine) -> (result: string, is_err: bool)
 {
-    return strings.clone(string(engine.response[2:engine.response_len-2]))
+    result = strings.clone(string(engine.response[2:engine.response_len-2]))
+    is_err = engine.response[0] == '?'
+    return
 }
 
-engine_cmd_name :: proc(engine: ^Engine) -> string
+engine_cmd_name :: proc(engine: ^Engine) -> (result: string)
 {
     engine_get_sync_response(engine, "name\n")
-    return engine_get_response_string(engine)
+    result, _ = engine_get_response_result(engine)
+    return
 }
 
-engine_cmd_version :: proc(engine: ^Engine) -> string
+engine_cmd_version :: proc(engine: ^Engine) -> (result: string)
 {
     engine_get_sync_response(engine, "version\n")
-    return engine_get_response_string(engine)
+    result, _ = engine_get_response_result(engine)
+    return
 }
 
