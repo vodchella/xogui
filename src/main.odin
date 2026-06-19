@@ -24,6 +24,25 @@ main :: proc()
     rl.GuiSetStyle(rl.GuiControl.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_SIZE), FONT_SIZE * 1.2)
 
     for !rl.WindowShouldClose() {
+        switch game.state {
+        case .WaitForPlayerMove:
+            cell, clicked := board_handle_click_on_cell()
+            defer delete(cell)
+            if clicked {
+                err, is_ok := engine_cmd_play(&engine, cell)
+                defer delete(err)
+                if is_ok {
+                    index := cell_to_index(cell)
+                    game.board[index] = .X
+                    game.last_played_index = index
+                }
+            }
+        case .WaitForEngineMove:
+        case .EngineMoveReady:
+        case .CheckForWinner:
+        case .Over:
+        }
+
         rl.BeginDrawing()
         rl.ClearBackground(BG_COLOR)
         board_draw(&game)

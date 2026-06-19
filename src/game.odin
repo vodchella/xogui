@@ -9,8 +9,18 @@ Cell :: enum u8 {
     O,
 }
 
+Game_State :: enum u8 {
+    WaitForPlayerMove,
+    WaitForEngineMove,
+    EngineMoveReady,
+    CheckForWinner,
+    Over,
+}
+
 Game :: struct {
-    board:                 [BOARD_SIZE]u8,
+    state:                 Game_State,
+    board:                 [BOARD_SIZE]Cell,
+    last_player:           Cell,
     last_played_index:     int,
     current_message:       string,
     current_message_time:  u64,
@@ -19,7 +29,11 @@ Game :: struct {
 
 game_init :: proc() -> (game: Game)
 {
-    game = Game{}
+    game = Game{
+        state             = .WaitForPlayerMove,
+        last_player       = .Empty,
+        last_played_index = -1,
+    }
     mem.set(&game.board, u8(Cell.Empty), BOARD_SIZE)
     return
 }

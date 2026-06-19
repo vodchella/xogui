@@ -59,7 +59,7 @@ engine_get_response :: proc(engine: ^Engine)
     if err != nil {
         fmt.println("engine response read error:", err)
     } else {
-        fmt.print(string(engine.response[:]))
+        fmt.print(string(engine.response[:n]))
     }
 }
 
@@ -88,6 +88,15 @@ engine_cmd_version :: proc(engine: ^Engine) -> (result: string)
 {
     engine_get_sync_response(engine, "version\n")
     result, _ = engine_get_response_result(engine)
+    return
+}
+
+engine_cmd_play :: proc(engine: ^Engine,
+                        cell:   string) -> (err: string, is_ok: bool)
+{
+    engine_get_sync_response(engine, fmt.tprintf("play X %s\n", cell))
+    err, is_ok = engine_get_response_result(engine)
+    is_ok = !is_ok
     return
 }
 

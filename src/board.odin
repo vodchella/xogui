@@ -137,10 +137,6 @@ board_draw :: proc(game: ^Game)
 {
     // color: rl.Color = game_has_message(game) || game.is_over || !game.wait_for_pl_move
     color: rl.Color = game_has_message(game) ? INACTIVE_COLOR : FG_COLOR
-    // rl.SetMouseCursor(game.wait_for_pl_move && !game.is_over
-    //     ? rl.MOUSE_CURSOR_DEFAULT
-    //     : rl.MOUSE_CURSOR_NOT_ALLOWED
-    // )
 
     text: [2]u8
     text[1] = 0
@@ -169,12 +165,12 @@ board_draw :: proc(game: ^Game)
     for y in 0..<BOARD_SIDE {
         for x in 0..<BOARD_SIDE {
             index := xy_to_index(x, y)
-            if game.board[index] != u8(Cell.Empty) {
+            if game.board[index] != Cell.Empty {
                 py       := V_GRID_MARGIN + (CELL_SIZE * (BOARD_SIDE - y - 1))
                 px       := H_GRID_MARGIN + (CELL_SIZE * x)
-                pl_color := game.board[index] == u8(Cell.X) ? PL_X_COLOR : PL_O_COLOR
+                pl_color := game.board[index] == Cell.X ? PL_X_COLOR : PL_O_COLOR
                 pulse    := index == game.last_played_index
-                if game.board[index] == u8(Cell.X) {
+                if game.board[index] == Cell.X {
                     board_draw_x(px, py, pl_color, pulse)
                 } else {
                     board_draw_o(px, py, pl_color, pulse)
@@ -184,5 +180,31 @@ board_draw :: proc(game: ^Game)
     }
 
     board_draw_controls(game)
+}
+
+board_handle_click_on_cell :: proc() -> (cell: string, clicked: bool)
+{
+    clicked = false
+    cell    = ""
+    if !rl.IsMouseButtonReleased(rl.MouseButton.LEFT) {
+        return
+    }
+
+    mouse   := rl.GetMousePosition()
+    grid_x0 := H_GRID_MARGIN
+    grid_y0 := V_GRID_MARGIN
+    grid_x1 := H_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
+    grid_y1 := V_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
+
+    if int(mouse[0]) < grid_x0 || int(mouse[0]) >= grid_x1 ||
+       int(mouse[1]) < grid_y0 || int(mouse[1]) >= grid_y1 {
+        return
+    }
+
+    col     := (int(mouse[0]) - grid_x0) / CELL_SIZE
+    row     := (int(mouse[1]) - grid_y0) / CELL_SIZE
+    cell     = pos_to_cell(row, col)
+    clicked  = true
+    return
 }
 
