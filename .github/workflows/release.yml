@@ -22,7 +22,7 @@ jobs:
           - runs-on: ubuntu-24.04-arm
             target: arm64-linux
             odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-linux-arm64-dev-2026-06.tar.gz
-            odin_dir: odin-linux-arm64-nightly+2026-06
+            odin_dir: odin-linux-arm64-nightly+2026-06-08
             xoml_url: https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-arm64-linux.tar.gz
 
     steps:
