@@ -1,11 +1,17 @@
-.PHONY: build run clear
+.PHONY: default build run clean dir release
 
-BIN        := .build/xogui
-ODIN_FLAGS := -out:$(BIN) -debug
+default: build
 
-build:
+BIN := .build/xogui
+
+dir:
 	mkdir -p .build
-	odin build ./src/ $(ODIN_FLAGS)
+
+release: dir
+	odin build ./src/ -out:$(BIN) -o:size
+
+build: dir
+	odin build ./src/ -out:$(BIN) -debug
 
 run: build
 	$(BIN)

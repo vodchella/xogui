@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            target: x86_64-linux
+            odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-linux-amd64-dev-2026-06.tar.gz
+            odin_dir: odin-linux-amd64-dev-2026-06
+            xoml_url: https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-x86_64-linux.tar.gz
+          - runs-on: ubuntu-24.04-arm
+            target: arm64-linux
+            odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-linux-arm64-dev-2026-06.tar.gz
+            odin_dir: odin-linux-arm64-dev-2026-06
+            xoml_url: https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-arm64-linux.tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            clang \
+            libx11-dev \
+            libxrandr-dev \
+            libxi-dev \
+            libxcursor-dev \
+            libxinerama-dev \
+            libgl1-mesa-dev
+
+      - name: Install Odin
+        run: |
+          wget -q "${{ matrix.odin_url }}"
+          tar -xzf "$(basename "${{ matrix.odin_url }}")"
+          echo "$PWD/${{ matrix.odin_dir }}" >> "$GITHUB_PATH"
+
+      - name: Check Odin
+        run: |
+          ls -la "$PWD/${{ matrix.odin_dir }}"
+
+      - name: Install XOml
+        run: |
+          wget -q "${{ matrix.xoml_url }}"
+          tar -xzf "$(basename "${{ matrix.xoml_url }}")"
+
+      - name: Check XOml
+        run: |
+          file xoml
+
+      - name: Build XoGui and create tarball
+        run: |
+          make release
+          mv .build/xogui xogui
+          strip xogui
+          TAG="${{ github.ref_name }}"
+          FILENAME="xogui-${TAG}-${{ matrix.target }}.tar.gz"
+          tar -czf "$FILENAME" --transform='s|^|xogui/|' xoml xogui
+          ls -l "$FILENAME"
+
+      - name: Upload assets to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            xogui-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
