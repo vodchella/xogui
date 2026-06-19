@@ -28,7 +28,7 @@ main :: proc()
         switch game.state {
         case .New:
             engine_cmd_cleanboard(&engine)
-            game = game_init()
+            game = game_init() //TODO: memory leak?
         case .WaitForPlayerMove:
             if !game_has_message(&game) {
                 cell, clicked := board_handle_click_on_cell()
@@ -48,6 +48,11 @@ main :: proc()
                 }
             }
         case .WaitForEngineMove:
+            index := engine_cmd_genmove(&engine)
+            game.board[index] = .O
+            game.last_player = .O
+            game.last_played_index = index
+            game.state = .CheckForWinner
         case .EngineMoveReady:
         case .CheckForWinner:
             winner := engine_cmd_getwinner(&engine)
@@ -60,9 +65,9 @@ main :: proc()
             } else {
                 msg: string
                 #partial switch winner {
-                case .X:    msg = "You win!\n"
-                case .O:    msg = "Opponent wins!\n"
-                case .Draw: msg = "This is draw!\n"
+                case .X:    msg = "You win!"
+                case .O:    msg = "Opponent wins!"
+                case .Draw: msg = "This is draw!"
                 }
                 game_set_message(&game, msg)
                 game.state = .Over

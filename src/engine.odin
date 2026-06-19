@@ -122,3 +122,10 @@ engine_cmd_getwinner :: proc(engine: ^Engine) -> Winner
     }
 }
 
+engine_cmd_genmove :: proc(engine: ^Engine) -> int
+{
+    engine_get_sync_response(engine, "gen_move O\n")
+    resp, _ := engine_get_response_result(engine)
+    defer delete(resp)
+    return cell_to_index(resp)
+}
