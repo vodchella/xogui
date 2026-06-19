@@ -94,22 +94,25 @@ board_draw_o :: proc(x:     int,
     rl.DrawRing(center, radius_inner, radius_outer, 0, 360, O_SEGMENTS, color)
 }
 
-board_draw_message :: proc(message: cstring)
+board_draw_message :: proc(message: string)
 {
+    cstr := strings.clone_to_cstring(message)
+    defer delete(cstr)
+
     font       := rl.GetFontDefault()
-    text_size  := rl.MeasureTextEx(font, message, MSG_FONT_SIZE, 1)
+    text_size  := rl.MeasureTextEx(font, cstr, MSG_FONT_SIZE, 1)
     text_y_gap := MSG_FONT_SIZE / 2
     text_x_gap := MSG_FONT_SIZE / 2
     rect_w_gap := MSG_FONT_SIZE / 1.5
     rect_h_gap := f32(0)
     rect_w     := text_size[0] + rect_w_gap
-    rect_h     := text_size[1] + rect_h_gap
+    rect_h     := (text_size[1] + rect_h_gap) * 2
     rect_x     := (f32(WINDOW_WIDTH) - rect_w) / 2
     rect_y     := (f32(WINDOW_HEIGHT) - rect_h) / 2
     text_x     := rect_x + text_x_gap
     text_y     := rect_y + text_y_gap
     rl.DrawRectangle(i32(rect_x), i32(rect_y), i32(rect_w), i32(rect_h), MSG_COLOR)
-    rl.DrawTextEx(font, message, rl.Vector2{text_x, text_y}, MSG_FONT_SIZE, 1, FG_COLOR)
+    rl.DrawTextEx(font, cstr, rl.Vector2{text_x, text_y}, MSG_FONT_SIZE, 1, FG_COLOR)
 }
 
 board_draw_controls :: proc(game: ^Game)
@@ -136,7 +139,8 @@ board_draw_controls :: proc(game: ^Game)
 board_draw :: proc(game: ^Game)
 {
     // color: rl.Color = game_has_message(game) || game.is_over || !game.wait_for_pl_move
-    color: rl.Color = game_has_message(game) ? INACTIVE_COLOR : FG_COLOR
+    has_message := game_has_message(game)
+    color: rl.Color = has_message ? INACTIVE_COLOR : FG_COLOR
 
     text: [2]u8
     text[1] = 0
@@ -180,6 +184,9 @@ board_draw :: proc(game: ^Game)
     }
 
     board_draw_controls(game)
+    if has_message {
+        board_draw_message(game.current_message)
+    }
 }
 
 board_handle_click_on_cell :: proc() -> (cell: string, clicked: bool)
