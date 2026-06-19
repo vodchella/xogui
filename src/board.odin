@@ -12,8 +12,9 @@ pulse_scale :: proc() -> f32
     PULSE_FREQUENCY      :: 5.2  // Pulse speed in radians per second
     PULSE_SIN_OFFSET     :: 1.0  // Sin output offset: transforms [-1; 1] into [0; 2]
     PULSE_SIN_NORMALIZER :: 2.0  // Sin output divisor: transforms [0; 2] into [0; 1]
-    time := rl.GetTime()
-    normalized_sin := ((math.sin(time * PULSE_FREQUENCY) + PULSE_SIN_OFFSET) / PULSE_SIN_NORMALIZER)
+
+    time           := rl.GetTime()
+    normalized_sin := (math.sin(time * PULSE_FREQUENCY) + PULSE_SIN_OFFSET) / PULSE_SIN_NORMALIZER
     return f32(PULSE_SCALE_MIN + PULSE_SCALE_RANGE * normalized_sin)
 }
 
@@ -38,9 +39,8 @@ board_draw_symbol_pulse :: proc(sym:   cstring,
                                 y:     int,
                                 color: rl.Color)
 {
-    font  := rl.GetFontDefault()
-    scale := pulse_scale()
-
+    font      := rl.GetFontDefault()
+    scale     := pulse_scale()
     font_size := f32(FONT_SIZE) * scale
     text_size := rl.MeasureTextEx(font, sym, font_size, 1)
     text_x    := f32(x) + (f32(CELL_SIZE) - text_size[0]) / 2
@@ -111,6 +111,7 @@ board_draw_message :: proc(message: string)
     rect_y     := (f32(WINDOW_HEIGHT) - rect_h) / 2
     text_x     := rect_x + text_x_gap
     text_y     := rect_y + text_y_gap
+
     rl.DrawRectangle(i32(rect_x), i32(rect_y), i32(rect_w), i32(rect_h), MSG_COLOR)
     rl.DrawTextEx(font, cstr, rl.Vector2{text_x, text_y}, MSG_FONT_SIZE, 1, FG_COLOR)
 }

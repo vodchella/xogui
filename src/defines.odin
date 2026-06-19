@@ -20,5 +20,5 @@ PL_O_COLOR        :: rl.RED
 MSG_COLOR         :: rl.RED
 MSG_TIME          :: 2  // sec
 
-MSG_FONT_SIZE : f32     : FONT_SIZE * 1.5
+MSG_FONT_SIZE :f32 : FONT_SIZE * 1.5
 

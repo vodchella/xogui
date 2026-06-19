@@ -62,8 +62,8 @@ engine_set_request :: proc(engine:  ^Engine,
                            request: string)
 {
     engine.response_is_ready = false
-    engine.response_len = 0
-    engine.request = request
+    engine.response_len      = 0
+    engine.request           = request
 }
 
 engine_get_response :: proc(engine: ^Engine)
