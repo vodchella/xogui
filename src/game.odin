@@ -10,6 +10,13 @@ Cell :: enum u8 {
     O,
 }
 
+Winner :: enum {
+    None,
+    Draw,
+    X,
+    O,
+}
+
 Game_State :: enum u8 {
     New,
     WaitForPlayerMove,

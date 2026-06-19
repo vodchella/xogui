@@ -39,7 +39,9 @@ main :: proc()
                         defer delete(err)
                         index := cell_to_index(cell)
                         game.board[index] = .X
+                        game.last_player = .X
                         game.last_played_index = index
+                        game.state = .CheckForWinner
                     } else {
                         game_set_message(&game, err)
                     }
@@ -48,6 +50,23 @@ main :: proc()
         case .WaitForEngineMove:
         case .EngineMoveReady:
         case .CheckForWinner:
+            winner := engine_cmd_getwinner(&engine)
+            if winner == .None {
+                switch game.last_player {
+                case .X:     game.state = .WaitForEngineMove
+                case .O:     game.state = .WaitForPlayerMove
+                case .Empty: fmt.panicf("UNREACHABLE\n")
+                }
+            } else {
+                msg: string
+                #partial switch winner {
+                case .X:    msg = "You win!\n"
+                case .O:    msg = "Opponent wins!\n"
+                case .Draw: msg = "This is draw!\n"
+                }
+                game_set_message(&game, msg)
+                game.state = .Over
+            }
         case .Over:
         case .Quit:
             break game_loop

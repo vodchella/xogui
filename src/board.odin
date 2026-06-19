@@ -138,9 +138,12 @@ board_draw_controls :: proc(game: ^Game)
 
 board_draw :: proc(game: ^Game)
 {
-    // color: rl.Color = game_has_message(game) || game.is_over || !game.wait_for_pl_move
     has_message := game_has_message(game)
-    color: rl.Color = has_message ? INACTIVE_COLOR : FG_COLOR
+    is_inactive := has_message ||
+                   game.state == .Over ||
+                   game.state == .CheckForWinner ||
+                   game.state == .WaitForEngineMove
+    color: rl.Color = is_inactive ? INACTIVE_COLOR : FG_COLOR
 
     text: [2]u8
     text[1] = 0

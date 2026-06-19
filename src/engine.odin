@@ -110,3 +110,15 @@ engine_cmd_play :: proc(engine: ^Engine,
     return
 }
 
+engine_cmd_getwinner :: proc(engine: ^Engine) -> Winner
+{
+    engine_get_sync_response(engine, "winner\n")
+    resp, _ := engine_get_response_result(engine)
+    switch resp {
+    case "draw": return .Draw
+    case "X":    return .X
+    case "O":    return .O
+    case:        return .None
+    }
+}
+

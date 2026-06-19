@@ -21,5 +21,4 @@ MSG_COLOR         :: rl.RED
 MSG_TIME          :: 2  // sec
 
 MSG_FONT_SIZE : f32     : FONT_SIZE * 1.5
-DRAW_MSG      : string  : "This is draw!\n"
 
