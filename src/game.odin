@@ -64,3 +64,13 @@ game_has_message :: proc(game: ^Game) -> bool
     return game.current_message != "" && (rl.GetTime() - game.current_message_time < MSG_TIME)
 }
 
+game_make_move :: proc(game:   ^Game,
+                       index:  int,
+                       player: Cell)
+{
+    game.board[index]      = player
+    game.last_player       = player
+    game.last_played_index = index
+    game.state             = .CheckForWinner
+}
+

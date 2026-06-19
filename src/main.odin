@@ -38,10 +38,7 @@ main :: proc()
                     if is_ok {
                         defer delete(err)
                         index := cell_to_index(cell)
-                        game.board[index] = .X
-                        game.last_player = .X
-                        game.last_played_index = index
-                        game.state = .CheckForWinner
+                        game_make_move(&game, index, .X)
                     } else {
                         game_set_message(&game, err)
                     }
@@ -49,10 +46,7 @@ main :: proc()
             }
         case .WaitForEngineMove:
             index := engine_cmd_genmove(&engine)
-            game.board[index] = .O
-            game.last_player = .O
-            game.last_played_index = index
-            game.state = .CheckForWinner
+            game_make_move(&game, index, .O)
         case .EngineMoveReady:
         case .CheckForWinner:
             winner := engine_cmd_getwinner(&engine)
