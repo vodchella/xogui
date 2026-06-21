@@ -4,4 +4,4 @@
 .nvim.lua
 xogui
 xoml
-xoml.log
+*.log
