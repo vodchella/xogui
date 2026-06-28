@@ -118,15 +118,8 @@ board_draw_message :: proc(message: string)
 
 board_draw_controls :: proc(game: ^Game)
 {
-    BUTTON_WIDTH         :: 300
-    BUTTON_HEIGHT        :: 50
-    BUTTON_GAP           :: 10
-    BUTTON_TOP           :: WINDOW_HEIGHT - BUTTON_HEIGHT - (3 * BUTTON_GAP) - V_GRID_GAP / 2
-    BUTTON_NEW_GAME_LEFT :: (WINDOW_WIDTH - BUTTON_WIDTH * 2) / 2 - BUTTON_GAP
-    BUTTON_EXIT_LEFT     :: BUTTON_NEW_GAME_LEFT + BUTTON_WIDTH + 2 * BUTTON_GAP
-
-    new_game_button_rect := rl.Rectangle{BUTTON_NEW_GAME_LEFT, BUTTON_TOP, BUTTON_WIDTH, BUTTON_HEIGHT}
-    exit_button_rect     := rl.Rectangle{BUTTON_EXIT_LEFT, BUTTON_TOP, BUTTON_WIDTH, BUTTON_HEIGHT}
+    new_game_button_rect := rl.Rectangle{BUTTON_LEFT, BUTTON_NEW_GAME_TOP, BUTTON_WIDTH, BUTTON_HEIGHT}
+    exit_button_rect     := rl.Rectangle{BUTTON_LEFT, BUTTON_EXIT_TOP, BUTTON_WIDTH, BUTTON_HEIGHT}
 
     if rl.GuiButton(new_game_button_rect, "New game") {
         game.state = .New
