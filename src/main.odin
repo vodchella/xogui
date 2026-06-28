@@ -10,6 +10,14 @@ import rl "vendor:raylib"
 
 main :: proc()
 {
+    dir, e := os.get_executable_directory(context.allocator)
+    if e != os.ERROR_NONE {
+        panic("Failed to get executable directory")
+    }
+    fmt.println("INFO: working dir is", dir)
+    defer delete(dir)
+    os.setwd(dir)
+
     engine, err := engine_start()
     if err != nil {
         fmt.println("engine start error:", err)
