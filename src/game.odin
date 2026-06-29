@@ -30,6 +30,7 @@ Game_State :: enum u8 {
 Game :: struct {
     state:                 Game_State,
     board:                 [BOARD_SIZE]Cell,
+    dims:                  Dimensions,
     last_player:           Cell,
     last_played_index:     int,
     current_message:       string,
@@ -41,6 +42,7 @@ game_init :: proc() -> (game: Game)
 {
     game = Game{
         state             = .WaitForPlayerMove,
+        dims              = setup_dimensions(),
         last_player       = .Empty,
         last_played_index = -1,
         current_message   = "",

@@ -3,22 +3,49 @@ package xogui
 import rl "vendor:raylib"
 
 
-WINDOW_WIDTH         :: 1265
-WINDOW_HEIGHT        :: 900
+Dimensions :: struct {
+    WINDOW_WIDTH:        int,
+    WINDOW_HEIGHT:       int,
+    CELL_SIZE:           int,
+    FONT_SIZE:           f32,
+    GRID_SIDE:           int,
+    H_GRID_MARGIN:       int,
+    V_GRID_MARGIN:       int,
+    CONTROLS_LEFT:       int,
+    BUTTON_WIDTH:        int,
+    BUTTON_HEIGHT:       int,
+    BUTTON_GAP:          int,
+    BUTTON_EXIT_TOP:     int,
+    BUTTON_NEW_GAME_TOP: int,
+    BUTTON_LEFT:         int,
+    MSG_FONT_SIZE:       f32,
+}
+
+setup_dimensions :: proc() -> (dims: Dimensions)
+{
+    // monitor := rl.GetCurrentMonitor()
+    // width := rl.GetMonitorWidth(monitor)
+    // height := rl.GetMonitorHeight(monitor)
+    dims.WINDOW_WIDTH         = 1265
+    dims.WINDOW_HEIGHT        = 900
+    dims.CELL_SIZE            = 70
+    dims.H_GRID_MARGIN        = 100
+    dims.BUTTON_WIDTH         = 300
+    dims.BUTTON_HEIGHT        = 50
+    dims.BUTTON_GAP           = 10
+    dims.FONT_SIZE            = f32(dims.CELL_SIZE) / 2
+    dims.GRID_SIDE            = BOARD_SIDE * dims.CELL_SIZE
+    dims.V_GRID_MARGIN        = (dims.WINDOW_HEIGHT - dims.GRID_SIDE) / 2
+    dims.CONTROLS_LEFT        = (dims.H_GRID_MARGIN * 2) + (BOARD_SIDE * dims.CELL_SIZE)
+    dims.BUTTON_EXIT_TOP      = dims.V_GRID_MARGIN + (dims.GRID_SIDE - dims.CELL_SIZE) + (dims.CELL_SIZE - dims.BUTTON_HEIGHT)
+    dims.BUTTON_NEW_GAME_TOP  = dims.BUTTON_EXIT_TOP - dims.BUTTON_GAP - dims.BUTTON_HEIGHT
+    dims.BUTTON_LEFT          = dims.CONTROLS_LEFT
+    dims.MSG_FONT_SIZE        = f32(dims.FONT_SIZE) * 1.5
+    return
+}
+
 BOARD_SIDE           :: 10
 BOARD_SIZE           :: BOARD_SIDE * BOARD_SIDE
-CELL_SIZE            :: 70
-FONT_SIZE            :: CELL_SIZE - 40
-GRID_SIDE            :: BOARD_SIDE * CELL_SIZE
-H_GRID_MARGIN        :: 100
-V_GRID_MARGIN        :: (WINDOW_HEIGHT - GRID_SIDE) / 2
-CONTROLS_LEFT        :: (H_GRID_MARGIN * 2) + (BOARD_SIDE * CELL_SIZE)
-BUTTON_WIDTH         :: 300
-BUTTON_HEIGHT        :: 50
-BUTTON_GAP           :: 10
-BUTTON_EXIT_TOP      :: V_GRID_MARGIN + (GRID_SIDE - CELL_SIZE) + (CELL_SIZE - BUTTON_HEIGHT)
-BUTTON_NEW_GAME_TOP  :: BUTTON_EXIT_TOP - BUTTON_GAP - BUTTON_HEIGHT
-BUTTON_LEFT          :: CONTROLS_LEFT
 BG_COLOR             :: rl.Color{18, 18, 18, 255}
 FG_COLOR             :: rl.LIGHTGRAY
 INACTIVE_COLOR       :: rl.DARKGRAY
@@ -26,6 +53,4 @@ PL_X_COLOR           :: rl.GREEN
 PL_O_COLOR           :: rl.RED
 MSG_COLOR            :: rl.RED
 MSG_TIME             :: 2  // sec
-
-MSG_FONT_SIZE :f32 : FONT_SIZE * 1.5
 

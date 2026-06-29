@@ -18,7 +18,8 @@ pulse_scale :: proc() -> f32
     return f32(PULSE_SCALE_MIN + PULSE_SCALE_RANGE * normalized_sin)
 }
 
-board_draw_symbol :: proc(sym:   string,
+board_draw_symbol :: proc(dims:  ^Dimensions,
+                          sym:   string,
                           x:     int,
                           y:     int,
                           color: rl.Color)
@@ -27,39 +28,41 @@ board_draw_symbol :: proc(sym:   string,
     defer delete(c_sym)
 
     font      := rl.GetFontDefault()
-    text_size := rl.MeasureTextEx(font, c_sym, FONT_SIZE, 1)
-    text_x    := f32(x) + (f32(CELL_SIZE) - text_size.x) / 2
-    text_y    := f32(y) + (f32(CELL_SIZE) - text_size.y) / 2
+    text_size := rl.MeasureTextEx(font, c_sym, dims.FONT_SIZE, 1)
+    text_x    := f32(x) + (f32(dims.CELL_SIZE) - text_size.x) / 2
+    text_y    := f32(y) + (f32(dims.CELL_SIZE) - text_size.y) / 2
 
-    rl.DrawTextEx(font, c_sym, rl.Vector2{text_x, text_y}, FONT_SIZE, 1, color)
+    rl.DrawTextEx(font, c_sym, rl.Vector2{text_x, text_y}, dims.FONT_SIZE, 1, color)
 }
 
-board_draw_symbol_pulse :: proc(sym:   cstring,
+board_draw_symbol_pulse :: proc(dims:  ^Dimensions,
+                                sym:   cstring,
                                 x:     int,
                                 y:     int,
                                 color: rl.Color)
 {
     font      := rl.GetFontDefault()
     scale     := pulse_scale()
-    font_size := f32(FONT_SIZE) * scale
+    font_size := f32(dims.FONT_SIZE) * scale
     text_size := rl.MeasureTextEx(font, sym, font_size, 1)
-    text_x    := f32(x) + (f32(CELL_SIZE) - text_size[0]) / 2
-    text_y    := f32(y) + (f32(CELL_SIZE) - text_size[1]) / 2
+    text_x    := f32(x) + (f32(dims.CELL_SIZE) - text_size[0]) / 2
+    text_y    := f32(y) + (f32(dims.CELL_SIZE) - text_size[1]) / 2
 
     rl.DrawTextEx(font, sym, rl.Vector2{text_x, text_y}, font_size, 1, color)
 }
 
-board_draw_x :: proc(x:     int,
+board_draw_x :: proc(dims:  ^Dimensions,
+                     x:     int,
                      y:     int,
                      color: rl.Color,
                      pulse: bool)
 {
-    PADDING   :: CELL_SIZE * 0.20
-    THICKNESS :: CELL_SIZE * 0.08
+    PADDING   := f32(dims.CELL_SIZE) * 0.20
+    THICKNESS := f32(dims.CELL_SIZE) * 0.08
 
     scale := pulse ? pulse_scale() : 1.0
-    half  := f32(CELL_SIZE) / 2
-    size  := (f32(CELL_SIZE) - 2 * PADDING) * scale / 2
+    half  := f32(dims.CELL_SIZE) / 2
+    size  := (f32(dims.CELL_SIZE) - 2 * PADDING) * scale / 2
     cx    := f32(x) + half
     cy    := f32(y) + half
 
@@ -77,49 +80,60 @@ board_draw_x :: proc(x:     int,
     )
 }
 
-board_draw_o :: proc(x:     int,
+board_draw_o :: proc(dims:  ^Dimensions,
+                     x:     int,
                      y:     int,
                      color: rl.Color,
                      pulse: bool)
 {
-    PADDING    :: CELL_SIZE * 0.20
-    THICKNESS  :: CELL_SIZE * 0.08
+    PADDING    := f32(dims.CELL_SIZE) * 0.20
+    THICKNESS  := f32(dims.CELL_SIZE) * 0.08
     O_SEGMENTS :: 64
 
     scale        := pulse ? pulse_scale() : 1.0
-    center       := rl.Vector2{f32(x) + f32(CELL_SIZE) / 2, f32(y) + f32(CELL_SIZE) / 2}
-    radius_outer := ((f32(CELL_SIZE) / 2) - PADDING) * scale
+    center       := rl.Vector2{f32(x) + f32(dims.CELL_SIZE) / 2, f32(y) + f32(dims.CELL_SIZE) / 2}
+    radius_outer := ((f32(dims.CELL_SIZE) / 2) - PADDING) * scale
     radius_inner := radius_outer - THICKNESS
 
     rl.DrawRing(center, radius_inner, radius_outer, 0, 360, O_SEGMENTS, color)
 }
 
-board_draw_message :: proc(message: string)
+board_draw_message :: proc(game: ^Game)
 {
-    cstr := strings.clone_to_cstring(message)
+    cstr := strings.clone_to_cstring(game.current_message)
     defer delete(cstr)
 
     font       := rl.GetFontDefault()
-    text_size  := rl.MeasureTextEx(font, cstr, MSG_FONT_SIZE, 1)
-    text_y_gap := MSG_FONT_SIZE / 2
-    text_x_gap := MSG_FONT_SIZE / 2
-    rect_w_gap := MSG_FONT_SIZE / 1.5
+    text_size  := rl.MeasureTextEx(font, cstr, game.dims.MSG_FONT_SIZE, 1)
+    text_y_gap := game.dims.MSG_FONT_SIZE / 2
+    text_x_gap := game.dims.MSG_FONT_SIZE / 2
+    rect_w_gap := game.dims.MSG_FONT_SIZE / 1.5
     rect_h_gap := f32(0)
     rect_w     := text_size[0] + rect_w_gap
     rect_h     := (text_size[1] + rect_h_gap) * 2
-    rect_x     := (f32(CONTROLS_LEFT) - rect_w) / 2
-    rect_y     := (f32(WINDOW_HEIGHT) - rect_h) / 2
+    rect_x     := (f32(game.dims.CONTROLS_LEFT) - rect_w) / 2
+    rect_y     := (f32(game.dims.WINDOW_HEIGHT) - rect_h) / 2
     text_x     := rect_x + text_x_gap
     text_y     := rect_y + text_y_gap
 
     rl.DrawRectangle(i32(rect_x), i32(rect_y), i32(rect_w), i32(rect_h), MSG_COLOR)
-    rl.DrawTextEx(font, cstr, rl.Vector2{text_x, text_y}, MSG_FONT_SIZE, 1, FG_COLOR)
+    rl.DrawTextEx(font, cstr, rl.Vector2{text_x, text_y}, game.dims.MSG_FONT_SIZE, 1, FG_COLOR)
 }
 
 board_draw_controls :: proc(game: ^Game)
 {
-    new_game_button_rect := rl.Rectangle{BUTTON_LEFT, BUTTON_NEW_GAME_TOP, BUTTON_WIDTH, BUTTON_HEIGHT}
-    exit_button_rect     := rl.Rectangle{BUTTON_LEFT, BUTTON_EXIT_TOP, BUTTON_WIDTH, BUTTON_HEIGHT}
+    new_game_button_rect := rl.Rectangle{
+        f32(game.dims.BUTTON_LEFT),
+        f32(game.dims.BUTTON_NEW_GAME_TOP),
+        f32(game.dims.BUTTON_WIDTH),
+        f32(game.dims.BUTTON_HEIGHT)
+    }
+    exit_button_rect := rl.Rectangle{
+        f32(game.dims.BUTTON_LEFT),
+        f32(game.dims.BUTTON_EXIT_TOP),
+        f32(game.dims.BUTTON_WIDTH),
+        f32(game.dims.BUTTON_HEIGHT)
+    }
 
     if rl.GuiButton(new_game_button_rect, "New game") {
         game.state = .New
@@ -142,39 +156,39 @@ board_draw :: proc(game: ^Game)
     text: [2]u8
     text[1] = 0
     for c in 0..=BOARD_SIDE {
-        x  :i32 = i32(H_GRID_MARGIN + (CELL_SIZE * c))
-        ys :i32 = V_GRID_MARGIN
-        ye :i32 = ys + (BOARD_SIDE * CELL_SIZE)
+        x  :i32 = i32(game.dims.H_GRID_MARGIN + (game.dims.CELL_SIZE * c))
+        ys :i32 = i32(game.dims.V_GRID_MARGIN)
+        ye :i32 = ys + (BOARD_SIDE * i32(game.dims.CELL_SIZE))
         rl.DrawLine(x, ys, x, ye, color)
         if c < BOARD_SIDE {
             text[0] = 'A' + u8(c)
-            board_draw_symbol(string(text[:]), int(x), int(ys - CELL_SIZE), color)
-            board_draw_symbol(string(text[:]), int(x), int(ye), color)
+            board_draw_symbol(&game.dims, string(text[:]), int(x), int(ys - i32(game.dims.CELL_SIZE)), color)
+            board_draw_symbol(&game.dims, string(text[:]), int(x), int(ye), color)
         }
     }
     for r in 0..=BOARD_SIDE {
-        y  :i32 = i32(V_GRID_MARGIN + (CELL_SIZE * r))
-        xs :i32 = H_GRID_MARGIN
-        xe :i32 = xs + (BOARD_SIDE * CELL_SIZE)
+        y  :i32 = i32(game.dims.V_GRID_MARGIN + (game.dims.CELL_SIZE * r))
+        xs :i32 = i32(game.dims.H_GRID_MARGIN)
+        xe :i32 = xs + (BOARD_SIDE * i32(game.dims.CELL_SIZE))
         rl.DrawLine(xs, y, xe, y, color)
         if r < BOARD_SIDE {
             text[0] = '9' - u8(r)
-            board_draw_symbol(string(text[:]), int(xs - CELL_SIZE), int(y), color)
-            board_draw_symbol(string(text[:]), int(xe), int(y), color)
+            board_draw_symbol(&game.dims, string(text[:]), int(xs - i32(game.dims.CELL_SIZE)), int(y), color)
+            board_draw_symbol(&game.dims, string(text[:]), int(xe), int(y), color)
         }
     }
     for y in 0..<BOARD_SIDE {
         for x in 0..<BOARD_SIDE {
             index := xy_to_index(x, y)
             if game.board[index] != Cell.Empty {
-                py       := V_GRID_MARGIN + (CELL_SIZE * (BOARD_SIDE - y - 1))
-                px       := H_GRID_MARGIN + (CELL_SIZE * x)
+                py       := game.dims.V_GRID_MARGIN + (game.dims.CELL_SIZE * (BOARD_SIDE - y - 1))
+                px       := game.dims.H_GRID_MARGIN + (game.dims.CELL_SIZE * x)
                 pl_color := game.board[index] == Cell.X ? PL_X_COLOR : PL_O_COLOR
                 pulse    := index == game.last_played_index
                 if game.board[index] == Cell.X {
-                    board_draw_x(px, py, pl_color, pulse)
+                    board_draw_x(&game.dims, px, py, pl_color, pulse)
                 } else {
-                    board_draw_o(px, py, pl_color, pulse)
+                    board_draw_o(&game.dims, px, py, pl_color, pulse)
                 }
             }
         }
@@ -182,11 +196,11 @@ board_draw :: proc(game: ^Game)
 
     board_draw_controls(game)
     if has_message {
-        board_draw_message(game.current_message)
+        board_draw_message(game)
     }
 }
 
-board_handle_click_on_cell :: proc() -> (cell: string, clicked: bool)
+board_handle_click_on_cell :: proc(dims: ^Dimensions) -> (cell: string, clicked: bool)
 {
     clicked = false
     cell    = ""
@@ -195,18 +209,18 @@ board_handle_click_on_cell :: proc() -> (cell: string, clicked: bool)
     }
 
     mouse   := rl.GetMousePosition()
-    grid_x0 := H_GRID_MARGIN
-    grid_y0 := V_GRID_MARGIN
-    grid_x1 := H_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
-    grid_y1 := V_GRID_MARGIN + BOARD_SIDE * CELL_SIZE
+    grid_x0 := dims.H_GRID_MARGIN
+    grid_y0 := dims.V_GRID_MARGIN
+    grid_x1 := dims.H_GRID_MARGIN + BOARD_SIDE * dims.CELL_SIZE
+    grid_y1 := dims.V_GRID_MARGIN + BOARD_SIDE * dims.CELL_SIZE
 
     if int(mouse[0]) < grid_x0 || int(mouse[0]) >= grid_x1 ||
        int(mouse[1]) < grid_y0 || int(mouse[1]) >= grid_y1 {
         return
     }
 
-    col     := (int(mouse[0]) - grid_x0) / CELL_SIZE
-    row     := (int(mouse[1]) - grid_y0) / CELL_SIZE
+    col     := (int(mouse[0]) - grid_x0) / dims.CELL_SIZE
+    row     := (int(mouse[1]) - grid_y0) / dims.CELL_SIZE
     cell     = pos_to_cell(row, col)
     clicked  = true
     return

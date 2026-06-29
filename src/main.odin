@@ -30,9 +30,9 @@ main :: proc()
     title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.3 (%s engine %s)", name, version))
     game    := game_init()
 
-    rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, title)
+    rl.InitWindow(i32(game.dims.WINDOW_WIDTH), i32(game.dims.WINDOW_HEIGHT), title)
     rl.SetTargetFPS(60)
-    rl.GuiSetStyle(rl.GuiControl.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_SIZE), FONT_SIZE * 1.2)
+    rl.GuiSetStyle(rl.GuiControl.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_SIZE), i32(game.dims.FONT_SIZE * 1.2))
 
     game_loop:
     for !rl.WindowShouldClose() {
@@ -42,7 +42,7 @@ main :: proc()
             game = game_init()
         case .WaitForPlayerMove:
             if !game_has_message(&game) {
-                cell, clicked := board_handle_click_on_cell()
+                cell, clicked := board_handle_click_on_cell(&game.dims)
                 defer delete(cell)
                 if clicked {
                     err, is_ok := engine_cmd_play(&engine, cell)
