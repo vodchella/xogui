@@ -91,6 +91,7 @@ engine_get_sync_response :: proc(engine:  ^Engine,
 engine_get_response_result :: proc(engine: ^Engine) -> (result: string, is_err: bool)
 {
     result = strings.clone(string(engine.response[2:engine.response_len-2]))
+    result = strings.trim(result, "\r\n\x00 ")
     is_err = engine.response[0] == '?'
     return
 }
