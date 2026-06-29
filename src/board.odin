@@ -100,7 +100,7 @@ board_draw_o :: proc(dims:  ^Dimensions,
 
 board_draw_message :: proc(game: ^Game)
 {
-    cstr := strings.clone_to_cstring(game.current_message)
+    cstr := strings.clone_to_cstring(game.message)
     defer delete(cstr)
 
     font       := rl.GetFontDefault()
@@ -122,6 +122,12 @@ board_draw_message :: proc(game: ^Game)
 
 board_draw_controls :: proc(game: ^Game)
 {
+    difficulty_dropdown_rect := rl.Rectangle{
+        f32(game.dims.BUTTON_LEFT),
+        f32(game.dims.CONTROLS_TOP),
+        f32(game.dims.BUTTON_WIDTH),
+        f32(game.dims.BUTTON_HEIGHT)
+    }
     new_game_button_rect := rl.Rectangle{
         f32(game.dims.BUTTON_LEFT),
         f32(game.dims.BUTTON_NEW_GAME_TOP),
@@ -135,12 +141,26 @@ board_draw_controls :: proc(game: ^Game)
         f32(game.dims.BUTTON_HEIGHT)
     }
 
-    if rl.GuiButton(new_game_button_rect, "New game") {
-        game.command = Command(NewGame{})
+    if rl.GuiDropdownBox(difficulty_dropdown_rect, "Easy;Normal", &game.dbox_diff_selected_idx, game.dbox_diff_edit_mode) {
+        if game.state != .WaitForEngineMove {
+            game.dbox_diff_edit_mode = !game.dbox_diff_edit_mode
+            if !game.dbox_diff_edit_mode {
+                new_difficulty: Difficulty = game.dbox_diff_selected_idx == 1 ? .Normal : .Easy
+                if game.difficulty != new_difficulty {
+                    game.command = Command(SetDifficulty{difficulty = new_difficulty})
+                }
+            }
+        }
     }
-
+    if rl.GuiButton(new_game_button_rect, "New game") {
+        if game.state != .WaitForEngineMove {
+            game.command = Command(NewGame{})
+        }
+    }
     if rl.GuiButton(exit_button_rect, "Exit") {
-        game.command = Command(Quit{})
+        if game.state != .WaitForEngineMove {
+            game.command = Command(Quit{})
+        }
     }
 }
 

@@ -114,6 +114,18 @@ engine_cmd_cleanboard :: proc(engine: ^Engine)
     engine_get_sync_response(engine, "clean_board\n")
 }
 
+engine_cmd_difficulty :: proc(engine:     ^Engine,
+                              difficulty: Difficulty)
+{
+    diff_name: string
+    switch difficulty {
+    case .Easy:   diff_name = "easy"
+    case .Normal: diff_name = "normal"
+    }
+    cmd := fmt.tprintf("difficulty %s\n", diff_name)
+    engine_get_sync_response(engine, cmd)
+}
+
 engine_cmd_quit :: proc(engine: ^Engine)
 {
     engine_get_sync_response(engine, "quit\n")

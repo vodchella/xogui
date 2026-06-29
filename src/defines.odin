@@ -13,6 +13,7 @@ Dimensions :: struct {
     H_GRID_MARGIN:       int,
     V_GRID_MARGIN:       int,
     CONTROLS_LEFT:       int,
+    CONTROLS_TOP:        int,
     BUTTON_WIDTH:        int,
     BUTTON_HEIGHT:       int,
     BUTTON_GAP:          int,
@@ -41,7 +42,8 @@ setup_dimensions :: proc() -> (dims: Dimensions)
     dims.GRID_SIDE            = BOARD_SIDE * dims.CELL_SIZE
     dims.V_GRID_MARGIN        = (dims.WINDOW_HEIGHT - dims.GRID_SIDE) / 2
     dims.CONTROLS_LEFT        = (dims.H_GRID_MARGIN * 2) + (BOARD_SIDE * dims.CELL_SIZE)
-    dims.BUTTON_EXIT_TOP      = dims.V_GRID_MARGIN + (dims.GRID_SIDE - dims.CELL_SIZE) + (dims.CELL_SIZE - dims.BUTTON_HEIGHT)
+    dims.CONTROLS_TOP         = dims.V_GRID_MARGIN
+    dims.BUTTON_EXIT_TOP      = dims.CONTROLS_TOP + (dims.GRID_SIDE - dims.CELL_SIZE) + (dims.CELL_SIZE - dims.BUTTON_HEIGHT)
     dims.BUTTON_NEW_GAME_TOP  = dims.BUTTON_EXIT_TOP - dims.BUTTON_GAP - dims.BUTTON_HEIGHT
     dims.BUTTON_LEFT          = dims.CONTROLS_LEFT
     dims.MSG_FONT_SIZE        = f32(dims.FONT_SIZE) * 1.5

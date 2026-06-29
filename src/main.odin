@@ -45,12 +45,15 @@ main :: proc()
     for !rl.WindowShouldClose() {
         if game.command != nil {
             defer { game.command = nil }
-            #partial switch cmd in game.command {
+            switch cmd in game.command {
             case NewGame:
                 engine_cmd_cleanboard(&engine)
-                dims := game.dims
-                game = game_init()
-                game.dims = dims
+                game = game_reset(&game)
+            case SetDifficulty:
+                game.difficulty = cmd.difficulty
+                engine_cmd_cleanboard(&engine)
+                engine_cmd_difficulty(&engine, game.difficulty)
+                game = game_reset(&game)
             case Quit:
                 break game_loop
             }
