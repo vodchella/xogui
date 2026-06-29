@@ -117,7 +117,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          make release
+          odin build ./src/ -out:.build/xogui.exe -o:size
           mkdir dist-release
           Copy-Item ".build\xogui.exe" "dist-release\xogui.exe"
           Copy-Item "xoml.exe" "dist-release\xoml.exe"
