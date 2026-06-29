@@ -72,12 +72,6 @@ jobs:
         run: |
           ls -la "$PWD/${{ matrix.odin_dir }}"
 
-      - name: Check Odin (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          odin version
-
       - name: Install XOml (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -112,6 +106,19 @@ jobs:
           FILENAME="xogui-${TAG}-${{ matrix.target }}.tar.gz"
           tar -czf "$FILENAME" --transform='s|^|xogui/|' xoml xogui
           ls -l "$FILENAME"
+
+      - name: Setup MSVC dev cmd (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Check toolchain (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          where cl
+          where link
+          where lld-link
+          odin version
 
       - name: Build XoGui and create zip (Windows)
         if: runner.os == 'Windows'
