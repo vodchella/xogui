@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+env:
+  XOML_VERSION: v0.3.2
+  ODIN_VERSION: dev-2026-06
+
 jobs:
   build:
     name: Build ${{ matrix.target }}
@@ -16,20 +20,26 @@ jobs:
         include:
           - runs-on: ubuntu-latest
             target: x86_64-linux
-            odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-linux-amd64-dev-2026-06.tar.gz
+            odin_url: https://github.com/odin-lang/Odin/releases/download/${{ env.ODIN_VERSION }}/odin-linux-amd64-${{ env.ODIN_VERSION }}.tar.gz
             odin_dir: odin-linux-amd64-nightly+2026-06-08
-            xoml_url: https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-x86_64-linux.tar.gz
+            xoml_url: https://github.com/vodchella/xoml/releases/download/${{ env.XOML_VERSION }}/xoml-${{ env.XOML_VERSION }}-x86_64-linux.tar.gz
           # - runs-on: ubuntu-24.04-arm
           #   target: arm64-linux
-          #   odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-linux-arm64-dev-2026-06.tar.gz
+          #   odin_url: https://github.com/odin-lang/Odin/releases/download/${{ env.ODIN_VERSION }}/odin-linux-arm64-${{ env.ODIN_VERSION }}.tar.gz
           #   odin_dir: odin-linux-arm64-nightly+2026-06-08
-          #   xoml_url: https://github.com/vodchella/xoml/releases/download/v0.2.3/xoml-v0.2.3-arm64-linux.tar.gz
+          #   xoml_url: https://github.com/vodchella/xoml/releases/download/${{ env.XOML_VERSION }}/xoml-${{ env.XOML_VERSION }}-arm64-linux.tar.gz
+          - runs-on: windows-latest
+            target: x86_64-windows
+            odin_url: https://github.com/odin-lang/Odin/releases/download/${{ env.ODIN_VERSION }}/odin-windows-${{ env.ODIN_VERSION }}.zip
+            odin_dir: dist
+            xoml_url: https://github.com/vodchella/xoml/releases/download/${{ env.XOML_VERSION }}/xoml-${{ env.XOML_VERSION }}-x86_64-windows.zip
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt update
           sudo apt install -y \
@@ -41,27 +51,59 @@ jobs:
             libxinerama-dev \
             libgl1-mesa-dev
 
-      - name: Install Odin
+      - name: Install Odin (Linux)
+        if: runner.os == 'Linux'
         run: |
           wget -q "${{ matrix.odin_url }}"
           tar -xzf "$(basename "${{ matrix.odin_url }}")"
           echo "$PWD/${{ matrix.odin_dir }}" >> "$GITHUB_PATH"
           ls -al
 
-      - name: Check Odin
+      - name: Install Odin (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "${{ matrix.odin_url }}" -OutFile odin.zip
+          Expand-Archive odin.zip -DestinationPath .
+          "$PWD\${{ matrix.odin_dir }}" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Check Odin (Linux)
+        if: runner.os == 'Linux'
         run: |
           ls -la "$PWD/${{ matrix.odin_dir }}"
 
-      - name: Install XOml
+      - name: Check Odin (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          odin version
+
+      - name: Install XOml (Linux)
+        if: runner.os == 'Linux'
         run: |
           wget -q "${{ matrix.xoml_url }}"
           tar -xzf "$(basename "${{ matrix.xoml_url }}")"
 
-      - name: Check XOml
+      - name: Install XOml (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "${{ matrix.xoml_url }}" -OutFile xoml.zip
+          Expand-Archive xoml.zip -DestinationPath .
+
+      - name: Check XOml (Linux)
+        if: runner.os == 'Linux'
         run: |
           file xoml
 
-      - name: Build XoGui and create tarball
+      - name: Check XOml (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          .\xoml.exe --version
+
+      - name: Build XoGui and create tarball (Linux)
+        if: runner.os == 'Linux'
         run: |
           make release
           mv .build/xogui xogui
@@ -71,10 +113,24 @@ jobs:
           tar -czf "$FILENAME" --transform='s|^|xogui/|' xoml xogui
           ls -l "$FILENAME"
 
+      - name: Build XoGui and create zip (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          make release
+          mkdir dist-release
+          Copy-Item ".build\xogui.exe" "dist-release\xogui.exe"
+          Copy-Item "xoml.exe" "dist-release\xoml.exe"
+          $tag="${{ github.ref_name }}"
+          $filename="xogui-$tag-${{ matrix.target }}.zip"
+          Compress-Archive -Path dist-release\* -DestinationPath $filename
+          Get-ChildItem $filename
+
       - name: Upload assets to GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             xogui-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
+            xogui-${{ github.ref_name }}-${{ matrix.target }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

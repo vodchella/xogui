@@ -27,7 +27,7 @@ main :: proc()
 
     name    := engine_cmd_name(&engine)
     version := engine_cmd_version(&engine)
-    title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.3 (%s engine %s)", name, version))
+    title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.4 (%s engine %s)", name, version))
     game    := game_init()
 
     rl.InitWindow(1, 1, title)
