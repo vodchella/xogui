@@ -6,11 +6,11 @@
 [![raylib](https://img.shields.io/badge/raylib-5.5-blue)](https://github.com/raysan5/raylib)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**XoGui** is a Linux utility that provides a graphical user interface for playing tic-tac-toe (five in a row on a 10×10 board) with support for connecting different game engines via the [GTP](https://github.com/vodchella/xoml/blob/master/GTP.md) protocol.
+**XoGui** is a utility that provides a graphical user interface for playing tic-tac-toe (five in a row on a 10×10 board) with support for connecting different game engines via the [GTP](https://github.com/vodchella/xoml/blob/master/GTP.md) protocol. It runs on Linux and Windows.
 
 It is distributed together with the [XOml](https://github.com/vodchella/xoml) engine.
 
-The application is written in [Odin](https://github.com/odin-lang/odin) and uses the [raylib](https://github.com/raysan5/raylib) graphics library.
+The application is written in [Odin](https://github.com/odin-lang/odin) and uses the [Raylib](https://github.com/raysan5/raylib) graphics library.
 
 ## How to play
 
