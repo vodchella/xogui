@@ -38,6 +38,8 @@ Game :: struct {
     last_player:            Cell,
     last_played_index:      int,
     message:                string,
+    message_bg_color:       rl.Color,
+    message_fg_color:       rl.Color,
     message_time:           f64,
     difficulty:             Difficulty,
     dbox_diff_selected_idx: i32,
@@ -70,14 +72,18 @@ game_reset :: proc(game: ^Game) -> (new_game: Game)
     return
 }
 
-game_set_message :: proc(game: ^Game,
-                         msg:  string)
+game_set_message :: proc(game:     ^Game,
+                         msg:      string,
+                         bg_color: rl.Color,
+                         fg_color: rl.Color)
 {
     if (game.message != "") {
         delete(game.message)
     }
-    game.message      = msg
-    game.message_time = rl.GetTime()
+    game.message          = msg
+    game.message_bg_color = bg_color
+    game.message_fg_color = fg_color
+    game.message_time     = rl.GetTime()
 }
 
 game_has_message :: proc(game: ^Game) -> bool

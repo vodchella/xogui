@@ -57,6 +57,8 @@ FG_COLOR             :: rl.LIGHTGRAY
 INACTIVE_COLOR       :: rl.DARKGRAY
 PL_X_COLOR           :: rl.GREEN
 PL_O_COLOR           :: rl.RED
-MSG_COLOR            :: rl.RED
+MSG_ERR_COLOR        :: rl.RED
+MSG_OK_COLOR         :: rl.GREEN
+MSG_WARN_COLOR       :: rl.ORANGE
 MSG_TIME             :: 2  // sec
 

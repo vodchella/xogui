@@ -43,6 +43,9 @@ main :: proc()
 
     game_loop:
     for !rl.WindowShouldClose() {
+        //
+        //  Process game commands
+        //
         if game.command != nil {
             defer { game.command = nil }
             switch cmd in game.command {
@@ -54,11 +57,16 @@ main :: proc()
                 engine_cmd_cleanboard(&engine)
                 engine_cmd_difficulty(&engine, game.difficulty)
                 game = game_reset(&game)
+            case SetMessage:
+                game_set_message(&game, cmd.message, cmd.bg_color, cmd.fg_color)
             case Quit:
                 break game_loop
             }
         }
 
+        //
+        //  Process game state
+        //
         switch game.state {
         case .WaitForPlayerMove:
             if !game_has_message(&game) {
@@ -71,7 +79,9 @@ main :: proc()
                         index := cell_to_index(cell)
                         game_make_move(&game, index, .X)
                     } else {
-                        game_set_message(&game, err)
+                        game.command = Command(SetMessage{
+                            message = err, bg_color = MSG_WARN_COLOR, fg_color = BG_COLOR
+                        })
                     }
                 }
             }
@@ -94,19 +104,26 @@ main :: proc()
                 case .Empty: fmt.panicf("UNREACHABLE\n")
                 }
             } else {
-                msg: string
+                msg:   string
+                bg_color: rl.Color
+                fg_color: rl.Color
                 #partial switch winner {
-                case .X:    msg = "You win!"
-                case .O:    msg = "Opponent wins!"
-                case .Draw: msg = "This is draw!"
+                case .X:    msg = "You win!";       bg_color = MSG_OK_COLOR;   fg_color = BG_COLOR
+                case .O:    msg = "Opponent wins!"; bg_color = MSG_ERR_COLOR;  fg_color = FG_COLOR
+                case .Draw: msg = "This is draw!";  bg_color = MSG_WARN_COLOR; fg_color = BG_COLOR
                 }
-                game_set_message(&game, msg)
+                game.command = Command(SetMessage{
+                    message = msg, bg_color = bg_color, fg_color = fg_color
+                })
                 game.state = .Over
             }
         case .Over:
-            break game_loop
+            // Do nothing, wait for the "new game" button to be pressed
         }
 
+        //
+        //  Drawings
+        //
         rl.BeginDrawing()
         rl.ClearBackground(BG_COLOR)
         board_draw(&game)

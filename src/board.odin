@@ -116,8 +116,8 @@ board_draw_message :: proc(game: ^Game)
     text_x     := rect_x + text_x_gap
     text_y     := rect_y + text_y_gap
 
-    rl.DrawRectangle(i32(rect_x), i32(rect_y), i32(rect_w), i32(rect_h), MSG_COLOR)
-    rl.DrawTextEx(font, cstr, rl.Vector2{text_x, text_y}, game.dims.MSG_FONT_SIZE, 1, FG_COLOR)
+    rl.DrawRectangle(i32(rect_x), i32(rect_y), i32(rect_w), i32(rect_h), game.message_bg_color)
+    rl.DrawTextEx(font, cstr, rl.Vector2{text_x, text_y}, game.dims.MSG_FONT_SIZE, 1, game.message_fg_color)
 }
 
 board_draw_controls :: proc(game: ^Game)
