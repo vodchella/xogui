@@ -107,7 +107,7 @@ board_draw_message :: proc(message: string)
     rect_h_gap := f32(0)
     rect_w     := text_size[0] + rect_w_gap
     rect_h     := (text_size[1] + rect_h_gap) * 2
-    rect_x     := (f32(WINDOW_WIDTH) - rect_w) / 2
+    rect_x     := (f32(CONTROLS_LEFT) - rect_w) / 2
     rect_y     := (f32(WINDOW_HEIGHT) - rect_h) / 2
     text_x     := rect_x + text_x_gap
     text_y     := rect_y + text_y_gap
