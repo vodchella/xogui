@@ -126,6 +126,7 @@ jobs:
           odin build ./src/ -subsystem:windows -out:.build/xogui.exe -o:size
           Copy-Item ".build\xogui.exe" "dist-release\xogui.exe"
           Copy-Item "xoml.exe" "dist-release\xoml.exe"
+          Copy-Item "xoml-console.exe" "dist-release\xoml-console.exe"
 
           $vcruntime = Get-ChildItem `
             "C:\Program Files\Microsoft Visual Studio" `
