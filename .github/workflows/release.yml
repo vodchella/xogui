@@ -126,6 +126,20 @@ jobs:
           odin build ./src/ -out:.build/xogui.exe -o:size
           Copy-Item ".build\xogui.exe" "dist-release\xogui.exe"
           Copy-Item "xoml.exe" "dist-release\xoml.exe"
+
+          $vcruntime = Get-ChildItem `
+            "C:\Program Files\Microsoft Visual Studio" `
+            -Recurse `
+            -Filter "VCRUNTIME140.dll" `
+            -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match "\\x64\\" } |
+            Select-Object -First 1
+
+          if ($null -eq $vcruntime) {
+            throw "VCRUNTIME140.dll not found"
+          }
+          Copy-Item $vcruntime.FullName "dist-release\VCRUNTIME140.dll"
+
           $tag="${{ github.ref_name }}"
           $filename="xogui-$tag-${{ matrix.target }}.zip"
           Compress-Archive -Path dist-release\* -DestinationPath $filename
