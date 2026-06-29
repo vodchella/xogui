@@ -25,8 +25,8 @@ main :: proc()
     }
     thread.create_and_start_with_data(&engine, engine_loop)
 
-    name    := engine_cmd_name(&engine)
-    version := engine_cmd_version(&engine)
+    name    := strings.trim(engine_cmd_name(&engine), "\r\n\x00 ")
+    version := strings.trim(engine_cmd_version(&engine), "\r\n\x00 ")
     title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.4 (%s engine %s)", name, version))
     game    := game_init()
 
