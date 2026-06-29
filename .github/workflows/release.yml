@@ -20,19 +20,19 @@ jobs:
         include:
           - runs-on: ubuntu-latest
             target: x86_64-linux
-            odin_url: https://github.com/odin-lang/Odin/releases/download/${{ env.ODIN_VERSION }}/odin-linux-amd64-${{ env.ODIN_VERSION }}.tar.gz
+            odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-linux-amd64-dev-2026-06.tar.gz
             odin_dir: odin-linux-amd64-nightly+2026-06-08
-            xoml_url: https://github.com/vodchella/xoml/releases/download/${{ env.XOML_VERSION }}/xoml-${{ env.XOML_VERSION }}-x86_64-linux.tar.gz
+            xoml_url: https://github.com/vodchella/xoml/releases/download/v0.3.2/xoml-v0.3.2-x86_64-linux.tar.gz
           # - runs-on: ubuntu-24.04-arm
           #   target: arm64-linux
-          #   odin_url: https://github.com/odin-lang/Odin/releases/download/${{ env.ODIN_VERSION }}/odin-linux-arm64-${{ env.ODIN_VERSION }}.tar.gz
+          #   odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-linux-arm64-dev-2026-06.tar.gz
           #   odin_dir: odin-linux-arm64-nightly+2026-06-08
-          #   xoml_url: https://github.com/vodchella/xoml/releases/download/${{ env.XOML_VERSION }}/xoml-${{ env.XOML_VERSION }}-arm64-linux.tar.gz
+          #   xoml_url: https://github.com/vodchella/xoml/releases/download/v0.3.2/xoml-v0.3.2-arm64-linux.tar.gz
           - runs-on: windows-latest
             target: x86_64-windows
-            odin_url: https://github.com/odin-lang/Odin/releases/download/${{ env.ODIN_VERSION }}/odin-windows-${{ env.ODIN_VERSION }}.zip
+            odin_url: https://github.com/odin-lang/Odin/releases/download/dev-2026-06/odin-windows-dev-2026-06.zip
             odin_dir: dist
-            xoml_url: https://github.com/vodchella/xoml/releases/download/${{ env.XOML_VERSION }}/xoml-${{ env.XOML_VERSION }}-x86_64-windows.zip
+            xoml_url: https://github.com/vodchella/xoml/releases/download/v0.3.2/xoml-v0.3.2-x86_64-windows.zip
 
     steps:
       - name: Checkout
