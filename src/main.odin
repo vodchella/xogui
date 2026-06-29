@@ -43,10 +43,20 @@ main :: proc()
 
     game_loop:
     for !rl.WindowShouldClose() {
+        if game.command != nil {
+            defer { game.command = nil }
+            #partial switch cmd in game.command {
+            case NewGame:
+                engine_cmd_cleanboard(&engine)
+                dims := game.dims
+                game = game_init()
+                game.dims = dims
+            case Quit:
+                break game_loop
+            }
+        }
+
         switch game.state {
-        case .New:
-            engine_cmd_cleanboard(&engine)
-            game = game_init()
         case .WaitForPlayerMove:
             if !game_has_message(&game) {
                 cell, clicked := board_handle_click_on_cell(&game.dims)
@@ -91,7 +101,6 @@ main :: proc()
                 game.state = .Over
             }
         case .Over:
-        case .Quit:
             break game_loop
         }
 

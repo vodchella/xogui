@@ -17,20 +17,24 @@ Winner :: enum {
     O,
 }
 
+Difficulty :: enum {
+    Easy,
+    Normal,
+}
+
 Game_State :: enum u8 {
-    New,
     WaitForPlayerMove,
     RequestForEngineMove,
     WaitForEngineMove,
     CheckForWinner,
     Over,
-    Quit,
 }
 
 Game :: struct {
     state:                 Game_State,
     board:                 [BOARD_SIZE]Cell,
     dims:                  Dimensions,
+    command:               Command,
     last_player:           Cell,
     last_played_index:     int,
     current_message:       string,

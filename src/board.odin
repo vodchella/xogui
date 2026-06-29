@@ -136,11 +136,11 @@ board_draw_controls :: proc(game: ^Game)
     }
 
     if rl.GuiButton(new_game_button_rect, "New game") {
-        game.state = .New
+        game.command = Command(NewGame{})
     }
 
     if rl.GuiButton(exit_button_rect, "Exit") {
-        game.state = .Quit
+        game.command = Command(Quit{})
     }
 }
 
