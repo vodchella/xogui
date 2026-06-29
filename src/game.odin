@@ -42,7 +42,6 @@ game_init :: proc() -> (game: Game)
 {
     game = Game{
         state             = .WaitForPlayerMove,
-        dims              = setup_dimensions(),
         last_player       = .Empty,
         last_played_index = -1,
         current_message   = "",

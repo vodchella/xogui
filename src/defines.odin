@@ -1,5 +1,6 @@
 package xogui
 
+import "core:fmt"
 import rl "vendor:raylib"
 
 
@@ -23,16 +24,19 @@ Dimensions :: struct {
 
 setup_dimensions :: proc() -> (dims: Dimensions)
 {
-    // monitor := rl.GetCurrentMonitor()
-    // width := rl.GetMonitorWidth(monitor)
-    // height := rl.GetMonitorHeight(monitor)
-    dims.WINDOW_WIDTH         = 1265
-    dims.WINDOW_HEIGHT        = 900
-    dims.CELL_SIZE            = 70
-    dims.H_GRID_MARGIN        = 100
-    dims.BUTTON_WIDTH         = 300
-    dims.BUTTON_HEIGHT        = 50
-    dims.BUTTON_GAP           = 10
+    monitor := rl.GetCurrentMonitor()
+    width   := rl.GetMonitorWidth(monitor)
+    scale :f32 = f32(width) / 3000.0
+    fmt.println("INFO: XOGUI: current monitor width:", width)
+    fmt.println("INFO: XOGUI: using scale:          ", scale)
+
+    dims.WINDOW_WIDTH         = int(1265 * scale)
+    dims.WINDOW_HEIGHT        = int(900  * scale)
+    dims.CELL_SIZE            = int(70   * scale)
+    dims.H_GRID_MARGIN        = int(100  * scale)
+    dims.BUTTON_WIDTH         = int(300  * scale)
+    dims.BUTTON_HEIGHT        = int(50   * scale)
+    dims.BUTTON_GAP           = int(10   * scale)
     dims.FONT_SIZE            = f32(dims.CELL_SIZE) / 2
     dims.GRID_SIDE            = BOARD_SIDE * dims.CELL_SIZE
     dims.V_GRID_MARGIN        = (dims.WINDOW_HEIGHT - dims.GRID_SIDE) / 2

@@ -14,7 +14,7 @@ main :: proc()
     if e != os.ERROR_NONE {
         panic("Failed to get executable directory")
     }
-    fmt.println("INFO: working dir is", dir)
+    fmt.println("INFO: XOGUI: working dir:", dir)
     defer delete(dir)
     os.setwd(dir)
 
@@ -30,9 +30,16 @@ main :: proc()
     title   := strings.clone_to_cstring(fmt.tprintf("XoGui 0.0.3 (%s engine %s)", name, version))
     game    := game_init()
 
-    rl.InitWindow(i32(game.dims.WINDOW_WIDTH), i32(game.dims.WINDOW_HEIGHT), title)
+    rl.InitWindow(1, 1, title)
+    game.dims = setup_dimensions()
     rl.SetTargetFPS(60)
     rl.GuiSetStyle(rl.GuiControl.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_SIZE), i32(game.dims.FONT_SIZE * 1.2))
+    rl.SetWindowSize(i32(game.dims.WINDOW_WIDTH), i32(game.dims.WINDOW_HEIGHT))
+
+    monitor       := rl.GetCurrentMonitor()
+    screen_width  := rl.GetMonitorWidth(monitor)
+    screen_height := rl.GetMonitorHeight(monitor)
+    rl.SetWindowPosition((screen_width - i32(game.dims.WINDOW_WIDTH)) / 2, (screen_height - i32(game.dims.WINDOW_HEIGHT)) / 2)
 
     game_loop:
     for !rl.WindowShouldClose() {
